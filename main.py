@@ -1,8 +1,12 @@
 # main.py
-import sys, os, cv2
+import sys, os
 from PyQt5 import QtCore, uic
 from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QApplication
+
+
+import CameraWidget
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -14,27 +18,13 @@ class MainWindow(QMainWindow, form_class):
         # Load the UI
         uic.loadUi("MainWindow.ui", self)
         
-        self.startCamera.clicked.connect(self.startCapturing)
+        self.camWidget = CameraWidget.CameraWidget()
+        self.camWidget.send_video.connect(self.setVideoFeed)
+        self.startCamera.clicked.connect(self.camWidget.startCapturing)
         
-    def startCapturing(self):
-        self.camera = cv2.VideoCapture(0)  
-        while self.camera.isOpened():
-            _, image = self.camera.read()
-            self.displayImage(image)
-            cv2.waitKey()
-
-        self.camera.release()
-        cv2.destroyAllWindows()
         
-    def displayImage(self, img):
-        qformat = QImage.Format_Indexed8 # Find correct image format
-        if len(img.shape) == 3:
-            if img.shape[2] == 4:
-                qformat = QImage.Format_RGBA888
-            else:
-                qformat = QImage.Format_RGB888
-        img = QImage(img, img.shape[1], img.shape[0], qformat) # Create QImage object
-        img = img.rgbSwapped()
+    @pyqtSlot(QImage)
+    def setVideoFeed(self, img):
         self.videoFeed.setPixmap(QPixmap.fromImage(img))
         self.videoFeed.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         
