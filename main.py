@@ -17,15 +17,15 @@ class MainWindow(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         # Load the UI
-        uic.loadUi("MainWindow.ui", self)
+        uic.loadUi("thumb.ui", self)
         
-        self.camWidget = CameraWidget.CameraWidget()
-        self.camWidget.send_video.connect(self.setVideoFeed)
-        self.startCamera.clicked.connect(self.camWidget.startCapturing)
-        self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
+        # self.camWidget = CameraWidget.CameraWidget()
+        # self.camWidget.send_video.connect(self.setVideoFeed)
+        # self.startCamera.clicked.connect(self.camWidget.startCapturing)
+        # self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
         
-        self.takePicture.clicked.connect(self.camWidget.savePicture)
-        self.uploadPicture.clicked.connect(self.uploadFiles)
+        # self.takePicture.clicked.connect(self.camWidget.savePicture)
+        # self.uploadPicture.clicked.connect(self.uploadFiles)
         
     @pyqtSlot(QImage)
     def setVideoFeed(self, img):
