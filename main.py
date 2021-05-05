@@ -3,7 +3,7 @@ import sys, os
 from PyQt5 import QtCore, uic
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 
 import CameraWidget
@@ -24,11 +24,19 @@ class MainWindow(QMainWindow, form_class):
         self.startCamera.clicked.connect(self.camWidget.startCapturing)
         self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
         
+        self.uploadPicture.clicked.connect(self.uploadFiles)
         
     @pyqtSlot(QImage)
     def setVideoFeed(self, img):
         self.videoFeed.setPixmap(QPixmap.fromImage(img))
         self.videoFeed.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+    
+    def uploadFiles(self):
+        fileNames, _ = QFileDialog.getOpenFileNames(self,
+            "Open Images", "", "Image Files (*.png *.jpg *.bmp)");
+        if fileNames:
+            print(fileNames)
+    
     
     def closeEvent(self, event):
         self.closeCamera.emit() # Close camera if needed
