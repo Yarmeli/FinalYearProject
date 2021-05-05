@@ -9,6 +9,7 @@ class CameraWidget(QWidget):
     def __init__(self):
         super(CameraWidget, self).__init__()
         self.camera = 0
+        self.saveCurrentFrame = 0
         
         
     @pyqtSlot()
@@ -16,6 +17,10 @@ class CameraWidget(QWidget):
         self.camera = cv2.VideoCapture(0)  
         while self.camera.isOpened():
             _, image = self.camera.read()
+            if self.saveCurrentFrame:
+                cv2.imwrite("currentFrame.jpg", image) # Save the current frame
+                self.saveCurrentFrame = 0
+                
             self.displayImage(image)
             cv2.waitKey()
 
@@ -32,6 +37,13 @@ class CameraWidget(QWidget):
         img = QImage(img, img.shape[1], img.shape[0], qformat) # Create QImage object
         img = img.rgbSwapped()
         self.send_video.emit(img) # Send the img object to the main application
+    
+    
+    @pyqtSlot()
+    def savePicture(self):
+        if self.camera:
+            if self.camera.isOpened():
+                self.saveCurrentFrame = 1
     
     
     @pyqtSlot()

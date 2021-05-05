@@ -24,6 +24,7 @@ class MainWindow(QMainWindow, form_class):
         self.startCamera.clicked.connect(self.camWidget.startCapturing)
         self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
         
+        self.takePicture.clicked.connect(self.camWidget.savePicture)
         self.uploadPicture.clicked.connect(self.uploadFiles)
         
     @pyqtSlot(QImage)
