@@ -33,3 +33,10 @@ class CameraWidget(QWidget):
         img = img.rgbSwapped()
         self.send_video.emit(img) # Send the img object to the main application
     
+    
+    @pyqtSlot()
+    def closeCameraIfOpened(self):
+        if self.camera:
+            if self.camera.isOpened(): # Close the camera safely
+                self.camera.release()
+                cv2.destroyAllWindows()
