@@ -30,6 +30,7 @@ class MainWindow(QMainWindow, form_class):
         
         self.thumbWidget = ThumbWidget.ThumbWidget()
         self.actionThumb_Settings.triggered.connect(self.thumbWidget.show)
+        self.actionClose.triggered.connect(self.close)
         
     @pyqtSlot(QImage)
     def setVideoFeed(self, img):
@@ -41,6 +42,10 @@ class MainWindow(QMainWindow, form_class):
             "Open Images", "", "Image Files (*.png *.jpg *.bmp)");
         if fileNames:
             print(fileNames)
+            """
+                Pending work:
+                    Replicate same behaviour of camWidget
+            """
     
     
     def closeEvent(self, event):

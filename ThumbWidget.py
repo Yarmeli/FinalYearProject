@@ -15,3 +15,10 @@ class ThumbWidget(QWidget):
         
         self.infoTop.setPixmap(QPixmap.fromImage(topimage))
         self.infoSide.setPixmap(QPixmap.fromImage(sideimage))
+        
+        """
+        Pending work:
+            Connect buttons - Save and Cancel
+            Send values to the main application
+            Error check values before sending
+        """
