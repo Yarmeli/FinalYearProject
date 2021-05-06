@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 
-import CameraWidget
+import CameraWidget, ThumbWidget
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -17,15 +17,19 @@ class MainWindow(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         # Load the UI
-        uic.loadUi("thumb.ui", self)
+        uic.loadUi("MainWindow.ui", self)
         
-        # self.camWidget = CameraWidget.CameraWidget()
-        # self.camWidget.send_video.connect(self.setVideoFeed)
-        # self.startCamera.clicked.connect(self.camWidget.startCapturing)
-        # self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
+        self.camWidget = CameraWidget.CameraWidget()
+        self.camWidget.send_video.connect(self.setVideoFeed)
+        self.startCamera.clicked.connect(self.camWidget.startCapturing)
+        self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
         
-        # self.takePicture.clicked.connect(self.camWidget.savePicture)
-        # self.uploadPicture.clicked.connect(self.uploadFiles)
+        self.takePicture.clicked.connect(self.camWidget.savePicture)
+        self.uploadPicture.clicked.connect(self.uploadFiles)
+        
+        
+        self.thumbWidget = ThumbWidget.ThumbWidget()
+        self.actionThumb_Settings.triggered.connect(self.thumbWidget.show)
         
     @pyqtSlot(QImage)
     def setVideoFeed(self, img):
