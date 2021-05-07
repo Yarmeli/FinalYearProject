@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QImage
 
 class CameraWidget(QWidget):
+    send_msg = pyqtSignal(str)
     send_video = pyqtSignal(QImage)
     
     def __init__(self):
@@ -14,6 +15,10 @@ class CameraWidget(QWidget):
         
     @pyqtSlot()
     def startCapturing(self):
+        self.send_msg.emit('Starting WebCam....\n')
+        self.send_msg.emit('You need to take one picture from the top and another from the side')
+        self.send_msg.emit('Once you are ready, press the button above to save the picture\n')
+        
         self.camera = cv2.VideoCapture(0)  
         while self.camera.isOpened():
             _, image = self.camera.read()
