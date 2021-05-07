@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 import CameraWidget, ThumbWidget
 
-from helpers import Debug
+from helpers import Debug, DebugMode
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -21,23 +21,39 @@ class MainWindow(QMainWindow, form_class):
         # Load the UI
         uic.loadUi("MainWindow.ui", self)
         
-        self.camWidget = CameraWidget.CameraWidget()
-        self.camWidget.send_msg.connect(self.setOutputText)
-        self.camWidget.send_video.connect(self.setVideoFeed)
-        self.startCamera.clicked.connect(self.camWidget.startCapturing)
-        self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
+        self.initUI()
         
+        # Create an object for each of the other classes
+        self.camWidget = CameraWidget.CameraWidget()
+        self.thumbWidget = ThumbWidget.ThumbWidget()
+        
+                    # Setup the Signals and the Slots
+        
+        # Signals for the User Interface
+        self.startCamera.clicked.connect(self.camWidget.startCapturing)
         self.takePicture.clicked.connect(self.camWidget.savePicture)
         self.uploadPicture.clicked.connect(self.uploadFiles)
         
-        
-        self.thumbWidget = ThumbWidget.ThumbWidget()
+        # Actions Dropdown menu - Under the 'File' in the top left
         self.actionThumb_Settings.triggered.connect(self.thumbWidget.show)
         self.actionClose.triggered.connect(self.close)
         
+        # Close the camera correctly
+        self.closeCamera.connect(self.camWidget.closeCameraIfOpened)
+        
+        # Signals for the Camera Widget class
+        self.camWidget.send_msg.connect(self.setOutputText)
+        self.camWidget.send_video.connect(self.setVideoFeed)
+        
+        
+    
+    def initUI(self):
+        # Set the initial message in the output box for the user
         self.setOutputText("Please choose 'Start Camera' or 'Upload Pictures'")
         self.setOutputText("You can change your thumb settings on the top left 'File' dropdown\n")
-        
+        if DebugMode:
+            self.setOutputText("**** Debug Mode is ON, check the console for these messages ****")
+    
         
     @pyqtSlot(str)
     def setOutputText(self, text):
