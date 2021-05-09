@@ -43,7 +43,7 @@ class FoodCNN(nn.Module):
             nn.MaxPool2d(2)
         )
         
-        self.fc1 = nn.Linear(in_features=64*63*63, out_features=600)
+        self.fc1 = nn.Linear(in_features=64*55*55, out_features=600)
         self.drop = nn.Dropout2d(0.25)
         self.fc2 = nn.Linear(in_features=600, out_features=120)
         self.fc3 = nn.Linear(in_features=120, out_features=17)
@@ -57,5 +57,4 @@ class FoodCNN(nn.Module):
         out = self.drop(out)
         out = self.fc2(out)
         out = self.fc3(out)
-        return x
-
+        return out
