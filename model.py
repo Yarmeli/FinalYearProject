@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
 
+from helpers import Debug
+
 class FoodDataset(Dataset):
     def __init__(self, labels_file, img_dir, transform=None, target_transform=None):
         self.img_labels = pd.read_csv(labels_file)
@@ -62,27 +64,41 @@ class FoodCNN(nn.Module):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ImageClassModel = FoodCNN().to(device)
 
-def train_model():
+def SetupTrainTestLoaders():    
+    Debug("Model", "Initializing Datasets and Dataloaders...")    
+        
+    # Set Batch size and resize size
+    batch_size = 32
+    size = 224
     
+    Debug("Model", f"Using Batch size of '{batch_size}'")
+    
+    # Setup label files and image directories
     train_csv = "Dataset/train_labels.csv"
     test_csv = "Dataset/test_labels.csv"
 
     train_imgdir = "Dataset/Train"
     test_imgdir = "Dataset/Test"
     
-    batch_size = 8
-    size = 224
-
     transform=transforms.Compose([transforms.Resize(size),
                                   transforms.CenterCrop(size),
                                   transforms.ToTensor()])
-
+    
+    # Create training and validation datasets
     train_set = FoodDataset(train_csv, train_imgdir, transform=transform)
     test_set = FoodDataset(test_csv, test_imgdir, transform=transform)
     
+    # Create the dataloader that will return 'batch_size' items at once (e.g. 8 items per iteration)
     train_loader = DataLoader(train_set, batch_size=batch_size)
     test_loader = DataLoader(test_set, batch_size=batch_size)
     
+    return train_loader, test_loader
+
+
+def train_model():
+    
+    train_loader, test_loader = SetupTrainTestLoaders()
+        
     num_epochs = 5
     train_losses = []
     valid_losses = []
