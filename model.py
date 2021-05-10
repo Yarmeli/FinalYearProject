@@ -200,7 +200,7 @@ def TrainFoodCNN():
     Debug("Model", f"Using Learning Rate of '{learning_rate}'")
     optimizer = torch.optim.Adam(ImageClassModel.parameters(), lr=learning_rate)
     
-    Debug("Model" f"Using num_workers: '{num_workers}'")
+    Debug("Model", f"Using num_workers: '{num_workers}'")
     
     ImageClassModel, valid_loss, train_loss, val_acc, train_acc = train_model(ImageClassModel, dataloader_dict, criterion, optimizer, num_epochs=num_epochs)
     
