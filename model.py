@@ -1,4 +1,5 @@
 import os, torch, time, copy
+import numpy as np
 import pandas as pd
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -6,6 +7,7 @@ from torchvision import transforms
 from PIL import Image
 
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 from helpers import Debug
 
@@ -65,7 +67,7 @@ class FoodCNN(nn.Module):
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ImageClassModel = FoodCNN().to(device)
-num_workers = 2
+num_workers = 0
 
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
@@ -186,8 +188,6 @@ def SetupTrainTestLoaders():
     return dataloader_dict
 
 
-
-
 def TrainFoodCNN():
     global ImageClassModel
     
@@ -216,3 +216,84 @@ def TrainFoodCNN():
     plt.plot(train_acc, label="training accuracy")
     plt.legend()
     plt.show()
+    
+
+
+def output_label(label):
+    output_mapping = {
+                0: 'Apple',
+                1: 'Banana',
+                2: 'Bean',
+                3: 'Bread',
+                4: 'Carrot',
+                5: 'Cheese',
+                6: 'Cucumber',
+                7: 'Egg',
+                8: 'Grape',
+                9: 'Kiwi',
+                10: 'Onion',
+                11: 'Orange',
+                12: 'Pasta',
+                13: 'Pepper',
+                14: 'Sauce',
+                15: 'Tomato',
+                16: 'Watermelon'
+                }
+    input = (label.item() if type(label) == torch.Tensor else label)
+    return output_mapping[input]
+   
+
+def plotImage(image, label=None):
+    if label is not None:
+        if type(label) != str: # Label is a number, get the correct label name
+            label = output_label(label)
+        plt.title(label)
+            
+    img = np.transpose(image.squeeze(), (1,2,0)) # Change from (CxHxW) to (HxWxC) , C = colors, H = heigth, W = width
+    plt.imshow(img)
+    plt.show()
+
+
+def EvaluateOnData(model, csvFile, imgdir):
+    
+    # Set Batch size and resize size
+    batch_size = 32
+    size = 224
+
+    # Transforms
+    transform=transforms.Compose([transforms.Resize(size),
+                                  transforms.CenterCrop(size),
+                                  transforms.ToTensor()])
+    
+    # Create the set
+    dataset = FoodDataset(csvFile, imgdir, transform=transform)
+
+    img_dataLoader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    
+    images, labels = iter(img_dataLoader).next()
+    
+    Debug("Evaluate","Sample Image:")
+    plotImage(images[0], labels[0])
+    
+    cm_predicted, cm_target = [], []
+    
+    model.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for images, labels in img_dataLoader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images.float())
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+            
+            cm_predicted.extend(predicted.tolist())
+            cm_target.extend(labels.tolist())
+
+    print('Accuracy of the model is: {:.4f} %'.format(100 * correct / total))
+    
+    cm = confusion_matrix(cm_target, cm_predicted)
+    plt.imshow(cm)
+
