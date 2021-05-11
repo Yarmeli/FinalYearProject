@@ -71,7 +71,7 @@ num_workers = 0
 
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
-    Debug("Model", "Training the model....")
+    print("Training the model....")
     since = time.time()
 
     train_loss = []
@@ -140,12 +140,12 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 train_acc.append(epoch_acc)
             
         time_elapsed = time.time() - last_epoch_time
-        Debug('Model','Epoch duration {:.0f}m {:.0f}s\n'.format(time_elapsed // 60, time_elapsed % 60))
+        print('Epoch duration {:.0f}m {:.0f}s\n'.format(time_elapsed // 60, time_elapsed % 60))
 
 
     time_elapsed = time.time() - since
-    Debug('Model', 'Training completed in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    Debug('Model', 'Lowest validation loss: {:4f}'.format(best_loss))
+    print('Training completed in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Lowest validation loss: {:4f}'.format(best_loss))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
