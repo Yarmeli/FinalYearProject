@@ -168,11 +168,14 @@ def SetupTrainTestLoaders():
     
     train_tranform=transforms.Compose([transforms.RandomResizedCrop(size),
                                        transforms.RandomHorizontalFlip(),
-                                       transforms.ToTensor()])
+                                       transforms.ToTensor(),
+                                       transforms.Normalize(mean=mean, std=std)])
     
     val_transform=transforms.Compose([transforms.Resize(size),
                                       transforms.CenterCrop(size),
-                                      transforms.ToTensor()])
+                                      transforms.ToTensor(),
+                                      transforms.Normalize(mean=mean, std=std)])
+    
     
     # Create training and validation datasets
     train_set = FoodDataset(train_csv, train_imgdir, transform=train_tranform)
@@ -246,7 +249,14 @@ def plotImage(image, label=None):
         if type(label) != str: # Label is a number, get the correct label name
             label = output_label(label)
         plt.title(label)
-            
+    
+    mean_tensor = torch.tensor(mean, dtype=torch.float32)
+    std_tensor = torch.tensor(std, dtype=torch.float32)
+    
+    unnormalize = transforms.Normalize((-mean_tensor / std_tensor).tolist(), (1.0 / std_tensor).tolist())
+    
+    image = unnormalize(image)
+    
     img = np.transpose(image.squeeze(), (1,2,0)) # Change from (CxHxW) to (HxWxC) , C = colors, H = heigth, W = width
     plt.imshow(img)
     plt.show()
@@ -261,7 +271,8 @@ def EvaluateOnData(model, csvFile, imgdir):
     # Transforms
     transform=transforms.Compose([transforms.Resize(size),
                                   transforms.CenterCrop(size),
-                                  transforms.ToTensor()])
+                                  transforms.ToTensor(),
+                                  transforms.Normalize(mean=mean, std=std)])
     
     # Create the set
     dataset = FoodDataset(csvFile, imgdir, transform=transform)
