@@ -35,39 +35,33 @@ class FoodCNN(nn.Module):
     
     def __init__(self):
         super(FoodCNN, self).__init__()
-        
-        
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1),
+        self.features = nn.Sequential(            
+            nn.Conv2d(in_channels=3, out_channels=44, kernel_size=5, padding=2), 
+            nn.ReLU(), 
+            nn.MaxPool2d(2), 
+            
+            nn.Conv2d(in_channels=44, out_channels=88, kernel_size=3), 
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.MaxPool2d(2),
         )
         
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3),
+        self.classifier = nn.Sequential(
+            nn.Linear(in_features=88 * 55 * 55, out_features=100), 
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.Dropout(0.25), 
+            
+            nn.Linear(in_features=100, out_features=17)
         )
-        
-        self.fc1 = nn.Linear(in_features=64*55*55, out_features=600)
-        self.drop = nn.Dropout2d(0.25)
-        self.fc2 = nn.Linear(in_features=600, out_features=120)
-        self.fc3 = nn.Linear(in_features=120, out_features=17)
-
 
     def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out = out.view(out.size(0), -1)
-        out = self.fc1(out)
-        out = self.drop(out)
-        out = self.fc2(out)
-        out = self.fc3(out)
-        return out
+        x = self.features(x) 
+        x = x.view(x.shape[0], -1)
+        x = self.classifier(x)
+        return x
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ImageClassModel = FoodCNN().to(device)
-num_workers = 0
+num_workers = 2
 
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
