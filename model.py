@@ -297,3 +297,16 @@ def EvaluateOnData(model, csvFile, imgdir):
     cm = confusion_matrix(cm_target, cm_predicted)
     plt.imshow(cm)
 
+
+def LoadSavedModel(file):
+    print(ImageClassModel.load_state_dict(torch.load(file)))
+    ImageClassModel.eval()
+    print(f"Loaded model weights from '{file}'")
+       
+
+def SaveCurrentModel(file):
+    print(f"Saving current model to '{file}'")
+    torch.save(ImageClassModel.state_dict(), file)
+   
+
+
