@@ -63,6 +63,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ImageClassModel = FoodCNN().to(device)
 num_workers = 2
 
+# Use CalculateMeanAndSTD() to get these values
+mean = [0.590, 0.520, 0.472]
+std = [0.183, 0.229, 0.240]
+
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     print("Training the model....")
@@ -290,6 +294,31 @@ def EvaluateOnData(model, csvFile, imgdir):
     
     cm = confusion_matrix(cm_target, cm_predicted)
     plt.imshow(cm)
+
+    
+def CalculateMeanAndSTD():
+    N_CHANNELS = 3 # RGB
+
+    csvFile = "Dataset/train_labels.csv"
+    imgdir = "Dataset/Train"
+
+    dataset = FoodDataset(csvFile, imgdir, transform=transforms.ToTensor())
+    loader = DataLoader(dataset, shuffle=False, num_workers=0)
+    
+    mean = torch.zeros(N_CHANNELS)
+    std = torch.zeros(N_CHANNELS)
+    
+    print('Calculating mean and std')
+    for inputs, _ in loader:
+        for i in range(N_CHANNELS):
+            mean[i] += inputs[:,i,:,:].mean()
+            std[i] += inputs[:,i,:,:].std()
+    mean.div_(len(dataset))
+    std.div_(len(dataset))
+    print("Results:")
+    print("Mean:", mean.tolist())
+    print("Std:", std.tolist())
+        
 
 
 def LoadSavedModel(file):
