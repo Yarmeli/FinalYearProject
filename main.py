@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 import CameraWidget, ThumbWidget
 
 from helpers import Debug, DebugMode
+from model import output_label
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow, form_class):
         # Signals for the Camera Widget class
         self.camWidget.send_msg.connect(self.setOutputText)
         self.camWidget.send_video.connect(self.setVideoFeed)
+        self.camWidget.send_prediction.connect(self.predictionMessage)
         
         
     
@@ -65,6 +67,10 @@ class MainWindow(QMainWindow, form_class):
         self.videoFeed.setPixmap(QPixmap.fromImage(img))
         self.videoFeed.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
     
+    @pyqtSlot(int)
+    def predictionMessage(self, prediction):
+        message = f"Model prediction: {output_label(prediction)}\n"        
+        self.setOutputText(message)
     def uploadFiles(self):
         fileNames, _ = QFileDialog.getOpenFileNames(self,
             "Open Images", "", "Image Files (*.png *.jpg *.bmp)");

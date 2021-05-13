@@ -3,9 +3,12 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QImage
 
+from model import GetPrediction
+
 class CameraWidget(QWidget):
     send_msg = pyqtSignal(str)
     send_video = pyqtSignal(QImage)
+    send_prediction = pyqtSignal(int)
     
     def __init__(self):
         super(CameraWidget, self).__init__()
@@ -24,13 +27,11 @@ class CameraWidget(QWidget):
             _, image = self.camera.read()
             if self.saveCurrentFrame:
                 cv2.imwrite("currentFrame.jpg", image) # Save the current frame
+                self.predictImage("currentFrame.jpg")
                 self.saveCurrentFrame = 0
                 
             self.displayImage(image)
             cv2.waitKey()
-
-        self.camera.release()
-        cv2.destroyAllWindows()
         
     def displayImage(self, img):
         qformat = QImage.Format_Indexed8 # Find correct image format
@@ -43,6 +44,10 @@ class CameraWidget(QWidget):
         img = img.rgbSwapped()
         self.send_video.emit(img) # Send the img object to the main application
     
+    
+    def predictImage(self, image_path):
+        prediction = GetPrediction(image_path)
+        self.send_prediction.emit(prediction)
     
     @pyqtSlot()
     def savePicture(self):
