@@ -337,15 +337,15 @@ def CalculateMeanAndSTD():
         
 
 
-def LoadSavedModel(file):
+def LoadSavedModel(file = "Dataset/Latest.pt"):
     print(ImageClassModel.load_state_dict(torch.load(file)))
     ImageClassModel.eval()
     print(f"Loaded model weights from '{file}'")
        
 
 def SaveCurrentModel(file):
-    print(f"Saving current model to '{file}'")
     torch.save(ImageClassModel.state_dict(), file)
+    print(f"Saved current model to '{file}'")
    
 
 
