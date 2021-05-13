@@ -36,27 +36,32 @@ class FoodCNN(nn.Module):
     def __init__(self):
         super(FoodCNN, self).__init__()
         self.features = nn.Sequential(            
-            nn.Conv2d(in_channels=3, out_channels=44, kernel_size=5, padding=2), 
+            nn.Conv2d(in_channels=3, out_channels=22, kernel_size=5, padding=2), # 224, 224, 3 -> 224, 224, 22
             nn.ReLU(), 
-            nn.MaxPool2d(2), 
+            nn.MaxPool2d(2), # 224, 224, 22 -> 112, 112, 22
             
-            nn.Conv2d(in_channels=44, out_channels=88, kernel_size=3), 
+            nn.Conv2d(in_channels=22, out_channels=44, kernel_size=3), # 112, 112, 22 -> 110, 110, 44
             nn.ReLU(),
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2), # 110, 110, 44 ->  55, 55, 44
+            
+            nn.Conv2d(in_channels=44, out_channels=88, kernel_size=3), # 55, 55, 44 -> 53, 53, 88
+            nn.ReLU(),
+            nn.MaxPool2d(2), # 53, 53, 88 ->  26, 26, 88
         )
         
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=88 * 55 * 55, out_features=100), 
+            nn.Linear(in_features=88 * 26 * 26, out_features=100), # Flatten to 88 * 26 * 26
             nn.ReLU(),
-            nn.Dropout(0.25), 
+            nn.Dropout(0.25), # Attempt to prevent overfitting
             
             nn.Linear(in_features=100, out_features=17)
+            # Do not return with softmax because CrossEntropy loss function already does that
         )
 
     def forward(self, x):
-        x = self.features(x) 
+        x = self.features(x) # Run all the functions inside self.features, in the order that they appear
         x = x.view(x.shape[0], -1)
-        x = self.classifier(x)
+        x = self.classifier(x) # Run all the functions inside self.classifier, in the order that they appear
         return x
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
