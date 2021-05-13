@@ -67,9 +67,11 @@ class MainWindow(QMainWindow, form_class):
         self.videoFeed.setPixmap(QPixmap.fromImage(img))
         self.videoFeed.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
     
-    @pyqtSlot(int)
-    def predictionMessage(self, prediction):
-        message = f"Model prediction: {output_label(prediction)}"        
+    @pyqtSlot(list, list)
+    def predictionMessage(self, predictions, confidences):
+        message = "Model predictions:\n"
+        for i in range(len(predictions)):
+            message += "{}: {:.1f}%\n".format(output_label(predictions[i]), confidences[i])
         self.setOutputText(message)
     def uploadFiles(self):
         fileNames, _ = QFileDialog.getOpenFileNames(self,

@@ -9,7 +9,7 @@ from helpers import Debug
 class CameraWidget(QWidget):
     send_msg = pyqtSignal(str)
     send_video = pyqtSignal(QImage)
-    send_prediction = pyqtSignal(int, float)
+    send_prediction = pyqtSignal(list, list)
     
     def __init__(self):
         super(CameraWidget, self).__init__()
@@ -82,8 +82,8 @@ class CameraWidget(QWidget):
     
     
     def predictImage(self, image_path):
-        prediction, confidence = GetPrediction(image_path)
-        self.send_prediction.emit(prediction, confidence)
+        predictions, confidences = GetPrediction(image_path)
+        self.send_prediction.emit(predictions, confidences)
     
     @pyqtSlot()
     def savePicture(self):
