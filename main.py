@@ -69,7 +69,7 @@ class MainWindow(QMainWindow, form_class):
     
     @pyqtSlot(int)
     def predictionMessage(self, prediction):
-        message = f"Model prediction: {output_label(prediction)}\n"        
+        message = f"Model prediction: {output_label(prediction)}"        
         self.setOutputText(message)
     def uploadFiles(self):
         fileNames, _ = QFileDialog.getOpenFileNames(self,

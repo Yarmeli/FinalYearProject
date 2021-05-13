@@ -1,9 +1,10 @@
-import cv2
+import cv2, time
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QImage
 
 from model import GetPrediction
+from helpers import Debug
 
 class CameraWidget(QWidget):
     send_msg = pyqtSignal(str)
@@ -23,11 +24,46 @@ class CameraWidget(QWidget):
         self.send_msg.emit('Once you are ready, press the button above to save the picture\n')
         
         self.camera = cv2.VideoCapture(0)  
+        
+        timestr, top_pic_name, side_pic_name = "", "", ""        
+        self.latest_pics = {'top': top_pic_name, 'side': side_pic_name}
+        topPictureTaken, sidePictureTaken = 0, 0
+        
         while self.camera.isOpened():
             _, image = self.camera.read()
             if self.saveCurrentFrame:
-                cv2.imwrite("currentFrame.jpg", image) # Save the current frame
-                self.predictImage("currentFrame.jpg")
+                
+                timestr = time.strftime('%Y%m%d-%H%M%S') # Get current time
+                
+                if topPictureTaken: 
+                # Top picture has been taken, now check the side picture
+                
+                    if sidePictureTaken:
+                        # Both pictures have been taken, retake both pictures
+                        self.send_msg.emit('\nRetaking both pictures!')
+                        topPictureTaken = 0
+                        sidePictureTaken = 0
+                        
+                    else:
+                        # Take the side picture
+                        side_pic_name = f"Pictures/side_picture_{timestr}.jpg"
+                        cv2.imwrite(side_pic_name, image)
+                        Debug("Capture", f"Side picture taken and stored in {side_pic_name}")
+                        self.predictImage(side_pic_name)
+                        
+                        sidePictureTaken = 1
+                        
+                if not topPictureTaken:
+                    # Top picture has not been taken
+                    # This is an 'if' instead of 'else' because topPictureTaken is set to 0 in line 42
+                    # And setting this as 'if' allows this to be run again
+                    top_pic_name = f"Pictures/top_picture_{timestr}.jpg"
+                    cv2.imwrite(top_pic_name, image)
+                    Debug("Capture", f"Top picture taken and stored in {top_pic_name}")
+                    
+                    self.predictImage(top_pic_name)
+                    topPictureTaken = 1
+                    
                 self.saveCurrentFrame = 0
                 
             self.displayImage(image)
