@@ -336,6 +336,29 @@ def CalculateMeanAndSTD():
     print("Std:", std.tolist())
         
 
+def GetPrediction(img):
+    size = 224
+
+    # Define the standard transforms that need to be done at inference time
+    transform = transforms.Compose([transforms.Resize(size),
+                                    transforms.CenterCrop(size),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize(mean=mean, std=std)])
+
+    
+    input_tensor = Image.open(img)
+    input_tensor = transform(input_tensor).unsqueeze(0)
+    input_tensor = input_tensor.to(device)
+
+    
+    with torch.no_grad():
+        
+        outputs = ImageClassModel(input_tensor.float())
+        _, predicted = torch.max(outputs.data, 1)
+        
+    torch.cuda.empty_cache()
+    return predicted.item()
+
 
 def LoadSavedModel(file = "Dataset/Latest.pt"):
     print(ImageClassModel.load_state_dict(torch.load(file)))
