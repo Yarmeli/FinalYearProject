@@ -354,10 +354,12 @@ def GetPrediction(img):
     with torch.no_grad():
         
         outputs = ImageClassModel(input_tensor.float())
-        _, predicted = torch.max(outputs.data, 1)
+        outputs = torch.nn.functional.softmax(outputs, dim=1) # Change to Softmax
+        confidence, prediction = torch.max(outputs.data, 1)
+        
         
     torch.cuda.empty_cache()
-    return predicted.item()
+    return prediction.item(), confidence.item() * 100
 
 
 def LoadSavedModel(file = "Dataset/Latest.pt"):
