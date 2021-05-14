@@ -15,6 +15,7 @@ class CameraWidget(QWidget):
         super(CameraWidget, self).__init__()
         self.camera = 0
         self.saveCurrentFrame = 0
+        self.predictions_dict = {}
         
         
     @pyqtSlot()
@@ -41,12 +42,15 @@ class CameraWidget(QWidget):
                     if sidePictureTaken:
                         # Both pictures have been taken, retake both pictures
                         self.send_msg.emit('\nRetaking both pictures!')
+                        Debug("Capture", "Resetting values (topPic, sidePic and predic_dict)")
                         topPictureTaken = 0
                         sidePictureTaken = 0
+                        self.predictions_dict.clear()
                         
                     else:
                         # Take the side picture
                         side_pic_name = f"Pictures/side_picture_{timestr}.jpg"
+                        self.latest_pics["side"] = side_pic_name # Keep track of side image
                         cv2.imwrite(side_pic_name, image)
                         Debug("Capture", f"Side picture taken and stored in {side_pic_name}")
                         self.predictImage(side_pic_name)
@@ -58,6 +62,7 @@ class CameraWidget(QWidget):
                     # This is an 'if' instead of 'else' because topPictureTaken is set to 0 in line 42
                     # And setting this as 'if' allows this to be run again
                     top_pic_name = f"Pictures/top_picture_{timestr}.jpg"
+                    self.latest_pics["top"] = top_pic_name # Keep track of top image
                     cv2.imwrite(top_pic_name, image)
                     Debug("Capture", f"Top picture taken and stored in {top_pic_name}")
                     
@@ -83,6 +88,13 @@ class CameraWidget(QWidget):
     
     def predictImage(self, image_path):
         predictions, confidences = GetPrediction(image_path)
+        for i in range(len(predictions)):
+            if predictions[i] in self.predictions_dict: # Check if class is already in the dictionary
+                if confidences[i] > self.predictions_dict[predictions[i]]: # only change value if current percentage is lower
+                    self.predictions_dict[predictions[i]] = confidences[i]
+            else: # Add new entry
+                self.predictions_dict[predictions[i]] = confidences[i]
+        Debug("Classification Prediction", f"prediction_dict values: {self.predictions_dict}")
         self.send_prediction.emit(predictions, confidences)
     
     @pyqtSlot()
