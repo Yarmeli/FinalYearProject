@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 import CameraWidget, ThumbWidget
 
 from helpers import Debug, DebugMode
-from model import output_label
+from model import output_label, LoadSavedModel, GetPrediction
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -84,11 +84,47 @@ class MainWindow(QMainWindow, form_class):
         fileNames, _ = QFileDialog.getOpenFileNames(self,
             "Open Images", "", "Image Files (*.png *.jpg *.bmp)");
         if fileNames:
-            print(fileNames)
+            if len(fileNames) != 2:
+                self.setOutputText("Please upload exactly 2 images! (the top and the side view)")
+                return
+
             """
-                Pending work:
-                    Replicate same behaviour of camWidget
-            """
+            Selecting which of the two images will be considered the 'top' and 'side' view
+            Check image names - Does any of them have 'top' or 'side'?
+            If none of them have it, first image is the top view and the second the side view
+            """               
+            latest_pics = {}
+            if any('top' in x or 'side' in x for x in fileNames): # Files are named correctly
+                if 'top' in fileNames[0] or 'side' in fileNames[1]:
+                    latest_pics["top"] = fileNames[0]
+                    latest_pics["side"] = fileNames[1]
+                elif 'top' in fileNames[1] or 'side' in fileNames[0]:
+                    latest_pics["top"] = fileNames[1]
+                    latest_pics["side"] = fileNames[0]
+            else: # File names are random
+                 latest_pics["top"] = fileNames[0] # first image is top view
+                 latest_pics["side"] = fileNames[1] # second image is side view
+                    
+            
+            Debug("Upload", f"Top image: '{latest_pics['top'][latest_pics['top'].rindex('/') + 1:]}', " + 
+                            f"Side image: '{latest_pics['side'][latest_pics['side'].rindex('/') + 1 :]}'")
+            
+            prediction_top, confidence_top = GetPrediction(latest_pics["top"])
+            prediction_side, confidence_side = GetPrediction(latest_pics["side"])
+            
+            top_pred_dict = dict(zip(prediction_top, confidence_top))
+            side_pred_dict = dict(zip(prediction_side, confidence_side))
+            
+            ImageClassPred_dict = {k : max(top_pred_dict.get(k,0), side_pred_dict.get(k,0))
+                                 for k in set(top_pred_dict).union(set(side_pred_dict))}
+            
+            Debug("Classification Prediction", f"ImageClassPred_dict values: {ImageClassPred_dict}")
+                        
+            # Send the messages to the user
+            self.setOutputText(f"Loaded '{latest_pics['top']}'")
+            self.predictionMessage(prediction_top, confidence_top)
+            self.setOutputText(f"Loaded '{latest_pics['side']}'")
+            self.predictionMessage(prediction_side, confidence_side)
     
     
     def closeEvent(self, event):
