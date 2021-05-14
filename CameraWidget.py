@@ -102,6 +102,8 @@ class CameraWidget(QWidget):
         if self.camera:
             if self.camera.isOpened():
                 self.saveCurrentFrame = 1
+        else:
+            self.send_msg.emit('Please start the camera first')
     
     
     @pyqtSlot()

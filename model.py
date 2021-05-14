@@ -372,13 +372,13 @@ def GetPrediction(img):
     return predicted_classes, [x * 100 for x in probabilities]
 
 
-def LoadSavedModel(file = "Dataset/Latest.pt"):
+def LoadSavedModel(file = "Dataset/ImageClassModel.pt"):
     print(ImageClassModel.load_state_dict(torch.load(file)))
     ImageClassModel.eval()
     print(f"Loaded model weights from '{file}'")
        
 
-def SaveCurrentModel(file):
+def SaveCurrentModel(file = "Dataset/ImageClassModel.pt"):
     torch.save(ImageClassModel.state_dict(), file)
     print(f"Saved current model to '{file}'")
    

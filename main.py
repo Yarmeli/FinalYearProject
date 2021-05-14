@@ -56,6 +56,9 @@ class MainWindow(QMainWindow, form_class):
         if DebugMode:
             self.setOutputText("**** Debug Mode is ON, check the console for these messages ****")
     
+    
+    """     SLOTS    """
+    
         
     @pyqtSlot(str)
     def setOutputText(self, text):
@@ -73,6 +76,10 @@ class MainWindow(QMainWindow, form_class):
         for i in range(len(predictions)):
             message += "{}: {:.1f}%\n".format(output_label(predictions[i]), confidences[i])
         self.setOutputText(message)
+    
+    """     METHODS    """
+    
+    
     def uploadFiles(self):
         fileNames, _ = QFileDialog.getOpenFileNames(self,
             "Open Images", "", "Image Files (*.png *.jpg *.bmp)");
