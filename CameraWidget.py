@@ -88,12 +88,12 @@ class CameraWidget(QWidget):
     
     def predictImage(self, image_path):
         predictions, confidences = GetPrediction(image_path)
-        for i in range(len(predictions)):
-            if predictions[i] in self.predictions_dict: # Check if class is already in the dictionary
-                if confidences[i] > self.predictions_dict[predictions[i]]: # only change value if current percentage is lower
-                    self.predictions_dict[predictions[i]] = confidences[i]
-            else: # Add new entry
-                self.predictions_dict[predictions[i]] = confidences[i]
+        temp_dict = dict(zip(predictions, confidences)) # Create a dict with these values
+        # Store the maximum value for each prediction
+        # max(dict1.get(), dict2.get()) returns the maximum value of key K between the dictionaries
+        # set(dict) returns a set of the dict keys and '.union(dict)' does set union
+        self.predictions_dict = {k : max(self.predictions_dict.get(k,0), temp_dict.get(k,0))
+                                 for k in set(self.predictions_dict).union(set(temp_dict))}
         Debug("Classification Prediction", f"prediction_dict values: {self.predictions_dict}")
         self.send_prediction.emit(predictions, confidences)
     
