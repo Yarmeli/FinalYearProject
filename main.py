@@ -5,9 +5,8 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
-
+# Local files
 import CameraWidget, ThumbWidget
-
 from helpers import Debug, DebugMode
 from model import output_label, LoadSavedModel, GetPrediction
 
@@ -16,11 +15,14 @@ ui_path = os.path.dirname(os.path.abspath(__file__))
 form_class = uic.loadUiType(os.path.join(ui_path, "MainWindow.ui"))[0]
 
 class MainWindow(QMainWindow, form_class):
-    closeCamera = pyqtSignal()
+    closeCamera = pyqtSignal() # Be able to communicate with the CameraWidget class
     def __init__(self):
         super().__init__()
         # Load the UI
         uic.loadUi("MainWindow.ui", self)
+        
+        # Load the latest model for Image Classification
+        LoadSavedModel()
         
         self.initUI()
         
@@ -105,9 +107,10 @@ class MainWindow(QMainWindow, form_class):
                  latest_pics["top"] = fileNames[0] # first image is top view
                  latest_pics["side"] = fileNames[1] # second image is side view
                     
+            top_imgname = latest_pics['top'][latest_pics['top'].rindex('/') + 1:]
+            side_imgname = latest_pics['side'][latest_pics['side'].rindex('/') + 1:]
             
-            Debug("Upload", f"Top image: '{latest_pics['top'][latest_pics['top'].rindex('/') + 1:]}', " + 
-                            f"Side image: '{latest_pics['side'][latest_pics['side'].rindex('/') + 1 :]}'")
+            Debug("Upload", f"Top image: '{top_imgname}', Side image: '{side_imgname}'")
             
             prediction_top, confidence_top = GetPrediction(latest_pics["top"])
             prediction_side, confidence_side = GetPrediction(latest_pics["side"])
@@ -121,9 +124,9 @@ class MainWindow(QMainWindow, form_class):
             Debug("Classification Prediction", f"ImageClassPred_dict values: {ImageClassPred_dict}")
                         
             # Send the messages to the user
-            self.setOutputText(f"Loaded '{latest_pics['top']}'")
+            self.setOutputText(f"Loaded '{top_imgname}'")
             self.predictionMessage(prediction_top, confidence_top)
-            self.setOutputText(f"Loaded '{latest_pics['side']}'")
+            self.setOutputText(f"Loaded '{side_imgname}'")
             self.predictionMessage(prediction_side, confidence_side)
     
     
