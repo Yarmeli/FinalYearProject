@@ -359,6 +359,15 @@ def GetPrediction(img):
         
     probabilities = probabilities[0].tolist()
     predicted_classes = predicted_classes[0].tolist()
+    
+    
+    classLabels = ""
+    for item in predicted_classes:
+        classLabels += output_label(item) + ", "
+    classLabels = classLabels[:-2]
+    
+    plotImage(input_tensor.cpu(), classLabels)
+    
     torch.cuda.empty_cache()
     return predicted_classes, [x * 100 for x in probabilities]
 
