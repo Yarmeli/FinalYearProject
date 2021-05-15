@@ -1,4 +1,5 @@
 import os, glob, torch, time, copy
+import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -87,19 +88,23 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 model.eval()
 
             running_loss = 0.0
-            running_corrects = 0
+            running_iou_means = []
 
             for images, labels in dataloaders[phase]:
                 images = images.to(device)
                 labels = labels.to(device)
-
+                
+                # Only process batch_size > 1
+                if images.shape[0] == 1:
+                    continue
+                
                 # reset the gradients
                 optimizer.zero_grad()
 
                 # forward pass
                 with torch.set_grad_enabled(phase == 'training'):
                     
-                    outputs = model(images)
+                    outputs = model(images)['out'] # only interested in the 'out' values - ignore 'aux'
                     loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)
@@ -109,12 +114,31 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                         loss.backward()
                         optimizer.step()
 
-                # get loss and accuracy for each batch
+                # calculate accuracy - Intersection over Union (IoU)
+                ious = []
+                preds = preds.view(-1)
+                labels = labels.view(-1)
+                
+                for classes in range(1, 19): # Ignore background class 0
+                    pred_idxs = preds == classes
+                    target_idxs = labels == classes
+                    intersection = (pred_idxs[target_idxs]).long().sum().data.cpu().item()
+                    union = pred_idxs.long().sum().data.cpu().item() + target_idxs.long().sum().data.cpu().item() - intersection
+                    if union > 0:
+                        ious.append(float(intersection) / float(max(union, 1)))
+                  
+                iou_mean = np.array(ious).mean()
+                
+                # track accuracy and loss values
+                running_iou_means.append(iou_mean)
                 running_loss += loss.item() * images.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+            if running_iou_means:
+                epoch_acc = np.array(running_iou_means).mean()
+            else:
+                epoch_acc = 0.
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
