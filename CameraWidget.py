@@ -49,10 +49,12 @@ class CameraWidget(QWidget):
                         
                     else:
                         # Take the side picture
-                        side_pic_name = f"Pictures/side_picture_{timestr}.jpg"
+                        side_pic_name = f"Pictures/Capture/side_picture_{timestr}.jpg"
                         self.latest_pics["side"] = side_pic_name # Keep track of side image
                         cv2.imwrite(side_pic_name, image)
-                        Debug("Capture", f"Side picture taken and stored in {side_pic_name}")
+                        
+                        self.send_msg.emit(f"Side picture taken and stored in '{side_pic_name}'")
+                        self.send_msg.emit("You can retake the pictures by pressing the 'Take Picture' button\n")
                         self.predictImage(side_pic_name)
                         
                         sidePictureTaken = 1
@@ -61,10 +63,12 @@ class CameraWidget(QWidget):
                     # Top picture has not been taken
                     # This is an 'if' instead of 'else' because topPictureTaken is set to 0 in line 42
                     # And setting this as 'if' allows this to be run again
-                    top_pic_name = f"Pictures/top_picture_{timestr}.jpg"
+                    top_pic_name = f"Pictures/Capture/top_picture_{timestr}.jpg"
                     self.latest_pics["top"] = top_pic_name # Keep track of top image
                     cv2.imwrite(top_pic_name, image)
-                    Debug("Capture", f"Top picture taken and stored in {top_pic_name}")
+                    
+                    self.send_msg.emit(f"Top picture taken and stored in '{top_pic_name}'")
+                    self.send_msg.emit('Now take a side picture\n')
                     
                     self.predictImage(top_pic_name)
                     topPictureTaken = 1
@@ -89,9 +93,11 @@ class CameraWidget(QWidget):
     def predictImage(self, image_path):
         predictions, confidences = GetPrediction(image_path)
         temp_dict = dict(zip(predictions, confidences)) # Create a dict with these values
-        # Store the maximum value for each prediction
-        # max(dict1.get(), dict2.get()) returns the maximum value of key K between the dictionaries
-        # set(dict) returns a set of the dict keys and '.union(dict)' does set union
+        """
+            The code below stores the maximum value for each prediction
+            max(dict1.get(), dict2.get()) returns the maximum value of key K between the dictionaries
+            set(dict) returns a set of the dict keys and '.union(dict)' does set union operation
+        """
         self.predictions_dict = {k : max(self.predictions_dict.get(k,0), temp_dict.get(k,0))
                                  for k in set(self.predictions_dict).union(set(temp_dict))}
         Debug("Classification Prediction", f"prediction_dict values: {self.predictions_dict}")
