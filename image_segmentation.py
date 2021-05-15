@@ -1,4 +1,32 @@
+import os, glob
+from torch.utils.data import Dataset
 from torchvision import models
+from PIL import Image
+
+class SegmentationDataset(Dataset):
+    def __init__(self, folder_path, transform=None):
+        super(SegmentationDataset, self).__init__()
+        self.img_files = sorted(glob.glob(os.path.join(folder_path,'Images','*.*')))
+        self.label_files = sorted(glob.glob(os.path.join(folder_path,'Labels','*.*')))
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.img_files)
+
+    def __getitem__(self, index):
+        img_path = self.img_files[index]
+        label_path = self.label_files[index]
+        
+        image = Image.open(img_path)
+        label = Image.open(label_path)
+        
+        
+        if self.transform:
+            image = self.transform(image)
+            label = self.transform(label)
+            
+        return image, label
+
 
 
 def DeepLabModel(keep_feature_extract=False, use_pretrained=True):
