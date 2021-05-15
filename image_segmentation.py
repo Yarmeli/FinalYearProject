@@ -1,7 +1,11 @@
-import os, glob
-from torch.utils.data import Dataset
-from torchvision import models
+import os, glob, torch, time, copy
+import matplotlib.pyplot as plt
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+from torchvision import models, transforms
 from PIL import Image
+
+from helpers import Debug
 
 class SegmentationDataset(Dataset):
     def __init__(self, folder_path, transform=None):
@@ -44,3 +48,162 @@ def DeepLabModel(keep_feature_extract=False, use_pretrained=True):
     DeepLabV3Model.classifier = models.segmentation.deeplabv3.DeepLabHead(2048, 19)
 
     return DeepLabV3Model
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+ImageSegModel = DeepLabModel().to(device)
+num_workers = 2
+
+# Obtained these values from the documentation
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
+
+
+
+def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
+    print("Training the model....")
+    since = time.time()
+
+    train_loss = []
+    val_loss = []
+    
+    train_acc = []
+    val_acc = []
+
+    # Keep track of the best weights 
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_loss = 1e10
+
+    for epoch in range(num_epochs):
+        last_epoch_time = time.time()
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        for phase in ['training', 'validation']:
+            # Set the model either to training or evaluation mode
+            if phase == 'training': 
+                model.train()
+            else:
+                model.eval()
+
+            running_loss = 0.0
+            running_corrects = 0
+
+            for images, labels in dataloaders[phase]:
+                images = images.to(device)
+                labels = labels.to(device)
+
+                # reset the gradients
+                optimizer.zero_grad()
+
+                # forward pass
+                with torch.set_grad_enabled(phase == 'training'):
+                    
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+
+                    _, preds = torch.max(outputs, 1)
+
+                    # Update weights
+                    if phase == 'training':
+                        loss.backward()
+                        optimizer.step()
+
+                # get loss and accuracy for each batch
+                running_loss += loss.item() * images.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+
+            epoch_loss = running_loss / len(dataloaders[phase].dataset)
+            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+
+            # Compare Accuracy with the best model
+            if phase == 'validation' and epoch_loss < best_loss:
+                best_loss = epoch_loss
+                best_model_wts = copy.deepcopy(model.state_dict()) # Save current weights
+            if phase == 'validation':
+                val_loss.append(epoch_loss)
+                val_acc.append(epoch_acc)
+            else:
+                train_loss.append(epoch_loss)
+                train_acc.append(epoch_acc)
+            
+        time_elapsed = time.time() - last_epoch_time
+        print('Epoch duration {:.0f}m {:.0f}s\n'.format(time_elapsed // 60, time_elapsed % 60))
+
+
+    time_elapsed = time.time() - since
+    print('Training completed in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Lowest validation loss: {:4f}'.format(best_loss))
+
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    return model, val_loss, train_loss, val_acc, train_acc
+
+
+def SetupTrainTestLoaders():    
+    Debug("Model", "Initializing Datasets and Dataloaders...")    
+        
+    # Set Batch size and resize size
+    batch_size = 32
+    size = 224
+    
+    Debug("Model", f"Using Batch size of '{batch_size}'")
+    
+    # Setup label files and image directories
+    train_imgdir = "Dataset/ImageSegmentation/Train"
+    test_imgdir = "Dataset/ImageSegmentation/Test"
+    
+    train_tranform=transforms.Compose([transforms.RandomResizedCrop(size),
+                                       transforms.RandomHorizontalFlip(),
+                                       transforms.ToTensor(),
+                                       transforms.Normalize(mean=mean, std=std)])
+    
+    val_transform=transforms.Compose([transforms.Resize(size),
+                                      transforms.CenterCrop(size),
+                                      transforms.ToTensor(),
+                                      transforms.Normalize(mean=mean, std=std)])
+    
+    
+    # Create training and validation datasets
+    train_set = SegmentationDataset(train_imgdir, transform=train_tranform)
+    test_set = SegmentationDataset(test_imgdir, transform=val_transform)
+    
+    # Create the dataloader that will return 'batch_size' items at once (e.g. 8 items per iteration)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    
+    dataloader_dict = { 'training' : train_loader, 'validation': test_loader }
+    return dataloader_dict
+
+
+def TrainImageSegmentation():
+    global ImageSegModel
+    
+    dataloader_dict = SetupTrainTestLoaders()
+        
+    num_epochs = 5
+    criterion = nn.CrossEntropyLoss()
+
+    learning_rate = 0.001
+    Debug("Model", f"Using Learning Rate of '{learning_rate}'")
+    optimizer = torch.optim.Adam(ImageSegModel.parameters(), lr=learning_rate)
+    
+    Debug("Model", f"Using num_workers: '{num_workers}'")
+    
+    ImageSegModel, valid_loss, train_loss, val_acc, train_acc = train_model(ImageSegModel, dataloader_dict, criterion, optimizer, num_epochs=num_epochs)
+    
+    torch.cuda.empty_cache()  
+    
+    plt.plot(valid_loss, label="validation loss")
+    plt.plot(train_loss, label="training loss")
+    plt.legend()
+    plt.show()
+    
+    plt.figure()
+    plt.plot(val_acc, label="validation accuracy")
+    plt.plot(train_acc, label="training accuracy")
+    plt.legend()
+    plt.show()
+    
