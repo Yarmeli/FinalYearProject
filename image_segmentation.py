@@ -155,6 +155,11 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             
         time_elapsed = time.time() - last_epoch_time
         print('Epoch duration {:.0f}m {:.0f}s\n'.format(time_elapsed // 60, time_elapsed % 60))
+        
+        # Save progress every 5 epochs
+        if epoch + 1 % 5 == 0:
+            SaveImageSegModel(f"Dataset/ImageSegModel_checkpoint_{epoch:04}.pt")
+        print()
 
 
     time_elapsed = time.time() - since
