@@ -231,3 +231,13 @@ def TrainImageSegmentation():
     plt.legend()
     plt.show()
     
+
+def LoadSavedImageSegModel(file = "Dataset/ImageSegModel.pt"):
+    Debug("Load Seg Model", ImageSegModel.load_state_dict(torch.load(file)))
+    ImageSegModel.eval()
+    Debug("Load Seg Model", f"Loaded model weights from '{file}'")
+
+
+def SaveImageSegModel(file = "Dataset/ImageSegModel.pt"):
+    torch.save(ImageSegModel.state_dict(), file)
+    Debug("Save Seg Model", f"Saved current model to '{file}'")
