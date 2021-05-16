@@ -27,11 +27,30 @@ class SegmentationDataset(Dataset):
         
         
         if self.transform:
-            image = self.transform(image)
-            label = self.transform(label)
+            # Combine image and label pictures to apply the transformation on both (e.g. RandomHorizontalFlip)
+            image_np = np.asarray(image)
+            label_np = np.asarray(label)
+            
+            new_shape = (image_np.shape[0], image_np.shape[1], image_np.shape[2] + 1)
+            image_and_label_np = np.zeros(new_shape, image_np.dtype)
+            image_and_label_np[:, :, 0:3] = image_np
+            image_and_label_np[:, :, 3] = label_np
+
+            # Convert to PIL Image
+            image_and_label = Image.fromarray(image_and_label_np)
+
+            # Apply Transforms
+            image_and_label = self.transform(image_and_label)
+
+            # Extract image and label
+            image = image_and_label[0:3, :, :]
+            label = image_and_label[3, :, :].unsqueeze(0)
+
+            # Normalize back from [0, 1] to [0, 255]
+            label = label * 255
+            label = label.long().squeeze()
             
         return image, label
-
 
 
 def DeepLabModel(keep_feature_extract=False, use_pretrained=True):
