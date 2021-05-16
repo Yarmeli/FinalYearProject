@@ -206,12 +206,12 @@ def SetupTrainTestLoaders():
     train_tranform=transforms.Compose([transforms.RandomResizedCrop(size),
                                        transforms.RandomHorizontalFlip(),
                                        transforms.ToTensor(),
-                                       transforms.Normalize(mean=mean, std=std)])
+                                       transforms.Normalize(mean=mean + [0], std=std + [1])])
     
     val_transform=transforms.Compose([transforms.Resize(size),
                                       transforms.CenterCrop(size),
                                       transforms.ToTensor(),
-                                      transforms.Normalize(mean=mean, std=std)])
+                                      transforms.Normalize(mean=mean + [0], std=std + [1])])
     
     
     # Create training and validation datasets
