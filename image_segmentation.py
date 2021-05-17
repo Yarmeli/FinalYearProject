@@ -1,4 +1,4 @@
-import os, glob, torch, time, copy
+import os, glob, torch, time, copy, cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn as nn
@@ -251,7 +251,118 @@ def TrainImageSegmentation():
     plt.plot(train_acc, label="training accuracy")
     plt.legend()
     plt.show()
+
+
+def SegmentSingleImage(image_path):
     
+    # Normalized
+    transforms_image =  transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean,std=std)
+        ])
+    
+    
+    image = Image.open(image_path)
+    filename = os.path.basename(image_path).split('.')[0]
+
+    image_np = np.asarray(image)
+    
+    # Reduce size
+    width = int(image_np.shape[1] * 0.3)
+    height = int(image_np.shape[0] * 0.3)
+    dim = (width, height)
+    if dim > (224, 224): # Make sure the final image is not too small
+        image_np = cv2.resize(image_np, dim, interpolation=cv2.INTER_AREA)
+
+    # Reopen smaller image
+    image = Image.fromarray(image_np)
+    image = transforms_image(image)
+    image = image.unsqueeze(0)
+
+    # Send to GPU
+    image = image.to(device)
+
+    # Get Prediction
+    outputs = ImageSegModel(image)["out"]
+    _, preds = torch.max(outputs, 1)
+    preds = preds.to("cpu")
+    preds_np = preds.squeeze(0).cpu().numpy().astype(np.uint8)
+
+
+    # create a color pallette (RGB) where values for Red are the class values
+    # E.g. (red = 0, class = background), (red = 1, class = Apple), (red = 2, class = Banana), etc.
+    palette = torch.tensor([2 ** 25 - 1, 2 ** 13 - 1, 2 ** 4 - 1])
+    colors = torch.as_tensor([i for i in range(19)])[:, None] * palette
+    colors = (colors % 255).numpy().astype("uint8")
+        
+    saveimg = Image.fromarray(preds_np)
+    saveimg.putpalette(colors)
+        
+    image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+    
+    # Keep track of where to saved segmentation is
+    saveLocation = f"Pictures/Segmentation/{filename}_segmented.png"
+    saveimg.save(saveLocation)
+    cv2.imwrite(f"Pictures/Segmentation/{filename}_image.png", image_np)
+    print(f"Completed '{filename}")
+    
+    return saveLocation # Return the location
+    
+    
+def SegmentFolder(folder_path):
+    
+    transforms_image =  transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean,std=std)
+        ])
+    
+    
+    for file in os.listdir(folder_path):
+        
+        filename = file.split('.')[0]
+        
+        image = Image.open(os.path.join(folder_path, file))
+        
+        image_np = np.asarray(image)
+        
+        # Reduce size
+        width = int(image_np.shape[1] * 0.3)
+        height = int(image_np.shape[0] * 0.3)
+        dim = (width, height)
+        image_np = cv2.resize(image_np, dim, interpolation=cv2.INTER_AREA)
+    
+        # Reopen smaller image
+        image = Image.fromarray(image_np)
+        image = transforms_image(image)
+        image = image.unsqueeze(0)
+    
+        # Send to GPU
+        image = image.to(device)
+    
+        # Get Prediction
+        outputs = ImageSegModel(image)["out"]
+        _, preds = torch.max(outputs, 1)
+        preds = preds.to("cpu")
+        preds_np = preds.squeeze(0).cpu().numpy().astype(np.uint8)
+    
+    
+        # create a color pallette (RGB) - Red values = class values (red = 0, class = background, etc.)
+        palette = torch.tensor([2 ** 25 - 1, 2 ** 13 - 1, 2 ** 4 - 1])
+        colors = torch.as_tensor([i for i in range(19)])[:, None] * palette
+        colors = (colors % 255).numpy().astype("uint8")
+        
+        
+        r = Image.fromarray(preds_np)
+        r.putpalette(colors)
+        
+        
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+            
+        r.save(f"Pictures/Segmentation/{filename}_segmentation.png")
+        cv2.imwrite(f"Pictures/Segmentation/{filename}_image.png", image_np)
+        print(f"Completed '{filename}")
+    print("Done")
+
 
 def LoadSavedImageSegModel(file = "Dataset/ImageSegModel.pt"):
     Debug("Load Seg Model", ImageSegModel.load_state_dict(torch.load(file)))
