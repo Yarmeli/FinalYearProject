@@ -171,11 +171,11 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             else:
                 train_loss.append(epoch_loss)
                 train_acc.append(epoch_acc)
-            
-        # Save progress every 5 epochs
-        if epoch + 1 % 5 == 0:
-            SaveImageSegModel(f"Dataset/ImageSegModel_checkpoint_{epoch:04}.pt")
-        print()
+                
+                # Save progress every 5 epochs
+                if (epoch + 1) % 5 == 0:
+                    SaveImageSegModel(f"Dataset/ImageSegModel_checkpoint_{epoch:04}.pt")
+                print()
 
 
     time_elapsed = time.time() - since

@@ -13,6 +13,7 @@ from helpers import Debug
 
 class FoodDataset(Dataset):
     def __init__(self, labels_file, img_dir, transform=None, target_transform=None):
+        super(FoodDataset, self).__init__()
         self.img_labels = pd.read_csv(labels_file)
         self.img_dir = img_dir
         self.transform = transform
@@ -93,7 +94,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
         print('-' * 10)
 
         for phase in ['training', 'validation']:
-            # Set the model either to training or evaluate mode
+            # Set the model either to training or evaluation mode
             if phase == 'training': 
                 model.train()
             else:
@@ -106,7 +107,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 images = images.to(device)
                 labels = labels.to(device)
 
-                # reset the parameter gradients
+                # reset the gradients
                 optimizer.zero_grad()
 
                 # forward pass
@@ -306,7 +307,7 @@ def EvaluateOnData(model, csvFile, imgdir):
             cm_predicted.extend(predicted.tolist())
             cm_target.extend(labels.tolist())
 
-    print('Accuracy of the model is: {:.4f} %'.format(100 * correct / total))
+    Debug('Evaluate', 'Accuracy of the model is: {:.4f} %'.format(100 * correct / total))
     
     cm = confusion_matrix(cm_target, cm_predicted)
     plt.imshow(cm)
@@ -324,16 +325,16 @@ def CalculateMeanAndSTD():
     mean = torch.zeros(N_CHANNELS)
     std = torch.zeros(N_CHANNELS)
     
-    print('Calculating mean and std')
+    Debug('Mean-Std','Calculating mean and std')
     for inputs, _ in loader:
         for i in range(N_CHANNELS):
             mean[i] += inputs[:,i,:,:].mean()
             std[i] += inputs[:,i,:,:].std()
     mean.div_(len(dataset))
     std.div_(len(dataset))
-    print("Results:")
-    print("Mean:", mean.tolist())
-    print("Std:", std.tolist())
+    Debug("Mean-Std","Results:")
+    Debug("Mean-Std", f"Mean: {mean.tolist()}")
+    Debug("Mean-Std", f"Std: {std.tolist()}")
         
 
 def GetPrediction(img):
@@ -373,14 +374,14 @@ def GetPrediction(img):
 
 
 def LoadSavedModel(file = "Dataset/ImageClassModel.pt"):
-    print(ImageClassModel.load_state_dict(torch.load(file)))
+    Debug("Load Class Model", ImageClassModel.load_state_dict(torch.load(file)))
     ImageClassModel.eval()
-    print(f"Loaded model weights from '{file}'")
+    Debug("Load Class Model", f"Loaded model weights from '{file}'")
        
 
 def SaveCurrentModel(file = "Dataset/ImageClassModel.pt"):
     torch.save(ImageClassModel.state_dict(), file)
-    print(f"Saved current model to '{file}'")
+    Debug("Save Class Model", f"Saved current model to '{file}'")
    
 
 
