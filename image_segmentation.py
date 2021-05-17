@@ -2,6 +2,7 @@ import os, glob, torch, time, copy
 import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn as nn
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models, transforms
 from PIL import Image
@@ -95,7 +96,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     best_loss = 1e10
 
     for epoch in range(num_epochs):
-        last_epoch_time = time.time()
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
@@ -109,7 +109,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             running_loss = 0.0
             running_iou_means = []
 
-            for images, labels in dataloaders[phase]:
+            for images, labels in tqdm(dataloaders[phase]):
                 images = images.to(device)
                 labels = labels.to(device)
                 
@@ -172,9 +172,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 train_loss.append(epoch_loss)
                 train_acc.append(epoch_acc)
             
-        time_elapsed = time.time() - last_epoch_time
-        print('Epoch duration {:.0f}m {:.0f}s\n'.format(time_elapsed // 60, time_elapsed % 60))
-        
         # Save progress every 5 epochs
         if epoch + 1 % 5 == 0:
             SaveImageSegModel(f"Dataset/ImageSegModel_checkpoint_{epoch:04}.pt")
