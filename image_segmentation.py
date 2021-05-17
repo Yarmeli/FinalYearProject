@@ -200,13 +200,12 @@ def SetupTrainTestLoaders():
     train_imgdir = "Dataset/ImageSegmentation/Train"
     test_imgdir = "Dataset/ImageSegmentation/Test"
     
-    train_tranform=transforms.Compose([transforms.RandomResizedCrop(size),
-                                       transforms.RandomHorizontalFlip(),
+    train_tranform=transforms.Compose([transforms.RandomHorizontalFlip(),
+                                       transforms.RandomVerticalFlip(),
                                        transforms.ToTensor(),
                                        transforms.Normalize(mean=mean + [0], std=std + [1])])
     
-    val_transform=transforms.Compose([transforms.Resize(size),
-                                      transforms.CenterCrop(size),
+    val_transform=transforms.Compose([transforms.CenterCrop(size),
                                       transforms.ToTensor(),
                                       transforms.Normalize(mean=mean + [0], std=std + [1])])
     
@@ -228,12 +227,12 @@ def TrainImageSegmentation():
     
     dataloader_dict = SetupTrainTestLoaders()
         
-    num_epochs = 5
+    num_epochs = 8
     criterion = nn.CrossEntropyLoss()
 
     learning_rate = 0.001
     Debug("Model", f"Using Learning Rate of '{learning_rate}'")
-    optimizer = torch.optim.Adam(ImageSegModel.parameters(), lr=learning_rate)
+    optimizer = torch.optim.SGD(ImageSegModel.parameters(), lr=learning_rate, momentum=0.9)
     
     Debug("Model", f"Using num_workers: '{num_workers}'")
     
@@ -365,6 +364,9 @@ def SegmentFolder(folder_path):
 
 
 def LoadSavedImageSegModel(file = "Dataset/ImageSegModel.pt"):
+    global ImageSegModel
+    # Change feature_extract and pre_trained values
+    ImageSegModel = DeepLabModel(keep_feature_extract=True, use_pretrained=False).to(device)
     Debug("Load Seg Model", ImageSegModel.load_state_dict(torch.load(file)))
     ImageSegModel.eval()
     Debug("Load Seg Model", f"Loaded model weights from '{file}'")
