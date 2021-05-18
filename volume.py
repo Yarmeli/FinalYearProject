@@ -100,5 +100,10 @@ def CalculateArea(image, foodItem, thumbvalues):
         linewidth=1, edgecolor='w', facecolor='none')
     ax.add_patch(bounding_box)
     
+    for y in range(BoxStart[1], BoxEnd[1], square):
+        for x in range(BoxStart[0], BoxEnd[0], square):
+            box = patches.Rectangle((x,y), square, square, linewidth=1, edgecolor='r', facecolor='none')
+            ax.add_patch(box)
+    
     
     plt.show()
