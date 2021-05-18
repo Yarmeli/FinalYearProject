@@ -41,7 +41,7 @@ def CalculateArea(image, foodItem, thumbvalues):
             if image[y][x] == thumbvalue:
                 width_thumb += 1
                 
-            if image[y][x] == foodItem:
+            if image[y][x] in foodItem:
                 width_food += 1
                 food_end_y = y
                 if food_start_y is None:
@@ -60,7 +60,7 @@ def CalculateArea(image, foodItem, thumbvalues):
             if image[y][x] == thumbvalue:
                 height_thumb += 1
                 
-            if image[y][x] == foodItem:
+            if image[y][x] in foodItem:
                 height_food += 1
                 food_end_x = x
                 if food_start_x is None:
@@ -116,18 +116,21 @@ def CalculateArea(image, foodItem, thumbvalues):
         for x in range(BoxStart[0], BoxEnd[0], square):    
             count = 0
             for row in range(square):
-                count += np.count_nonzero([image[y + row][x: x + square] == foodItem])
+                if y + row >= len(image):
+                    break
+                count += np.count_nonzero([image[y + row][x: x + square] == i for i in foodItem])
             percentage = count / (square * square)
             
             
             if percentage >= 0.6:
                 fullSquares += 1
-                print("Full Square - Box:", (x,y))
+                print((x,y), percentage, "- Full")
             elif percentage >= 0.3 and percentage < 0.6:
                 partialSquares += 1
-                print("Partial Square - Box:", (x,y))
+                print((x,y), percentage, "- Half")
             else:
-                print("Ignored - Box:", (x,y))
-       
+                print((x,y), percentage, "- Ignored")
+        print()
+    print()
     area = fullSquares + 1/2 * partialSquares    
     print(f"Calculated Area: {area}")
