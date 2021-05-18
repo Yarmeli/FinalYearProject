@@ -1,8 +1,9 @@
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
+
+from helpers import Debug, DebugMode
 
 def GetSquareSize(tw_pixel, tw_cm, th_pixel, th_cm):
     # tw_pixel      thumb width in pixels
@@ -13,35 +14,52 @@ def GetSquareSize(tw_pixel, tw_cm, th_pixel, th_cm):
     
     return 1/2 * ((tw_pixel / tw_cm) + (th_pixel / th_cm))
   
+def drawGrid(image, BoxStart, BoxEnd, square):    
+    fig, ax = plt.subplots()
+    ax.imshow(image)
     
+    Debug("Volume Grid", "Drawing Bounding Box")
+    if DebugMode:
+        # Only draw the bounding box if needed
+        # Otherwise there is too much information on the plot
+        bounding_box = patches.Rectangle(
+            BoxStart,
+            BoxEnd[0] - BoxStart[0],
+            BoxEnd[1] - BoxStart[1],
+            linewidth=1, edgecolor='w', facecolor='none')
+        ax.add_patch(bounding_box)
+    
+    for y in range(BoxStart[1], BoxEnd[1], square):
+        for x in range(BoxStart[0], BoxEnd[0], square):
+            box = patches.Rectangle((x,y), square, square, linewidth=1, edgecolor='r', facecolor='none')
+            ax.add_patch(box)
+    
+    plt.show()
+
 def CalculateArea(image, foodItem, thumbvalues):    
     
-    temp = Image.open(image)
-    image = np.asarray(temp)
+    image = Image.open(image)
+    image_np = np.asarray(image)
     
-    thumbvalue = 18 
+    thumbvalue = 18  # This is the class value in the image
     
-    max_width_thumb = 0
-    max_height_thumb = 0 
+    # These values assume the thumb is not at an angle.
+    max_width_thumb = 0 # Maximum distance on the X axis (assume this is the width of the thumb)
+    max_height_thumb = 0 # Maximum distance on the Y axis (assume this is the height of the thumb)
     
+    food_start_x, food_start_y, food_end_x, food_end_y  = None, None, None, None
         
-    food_start_x = None
-    food_start_y = None
-    
-    food_end_x = None
-    food_end_y = None
-    
-    for y in range(len(image)):
+    for y in range(len(image_np)):
         width_thumb = 0
         width_food = 0
 
         # Scan on the X axis for the width of the thumb
         # Also get the Y axis of where the food starts
-        for x in range(len(image[y])):
-            if image[y][x] == thumbvalue:
+        for x in range(len(image_np[y])):
+            if image_np[y][x] == thumbvalue:
                 width_thumb += 1
                 
-            if image[y][x] in foodItem:
+            if image_np[y][x] in foodItem:
                 width_food += 1
                 food_end_y = y
                 if food_start_y is None:
@@ -50,17 +68,17 @@ def CalculateArea(image, foodItem, thumbvalues):
         if width_thumb > max_width_thumb:
             max_width_thumb = width_thumb
             
-    for x in range(len(image[0])):
+    for x in range(len(image_np[0])):
         height_thumb = 0
         height_food = 0
         
         # Scan the Y axis for the height of the thumb
         # Also get the X axis of where the food starts
-        for y in range(len(image)):
-            if image[y][x] == thumbvalue:
+        for y in range(len(image_np)):
+            if image_np[y][x] == thumbvalue:
                 height_thumb += 1
                 
-            if image[y][x] in foodItem:
+            if image_np[y][x] in foodItem:
                 height_food += 1
                 food_end_x = x
                 if food_start_x is None:
@@ -72,9 +90,9 @@ def CalculateArea(image, foodItem, thumbvalues):
     
     square = GetSquareSize(max_width_thumb, thumbvalues[0], max_height_thumb, thumbvalues[1])
     square = round(square)
-    print("Thumb Width values:", max_width_thumb, thumbvalues[0])
-    print("Thumb Height values:", max_height_thumb, thumbvalues[1])
-    print(f"Square should be '{square}px' to be equivalent to 1cm2")
+    Debug("Volume measurement", f"Thumb Width values: {max_width_thumb}px, {thumbvalues[0]}cm")
+    Debug("Volume measurement", f"Thumb Height values: {max_height_thumb}px, {thumbvalues[1]}cm")
+    Debug("Volume measurement", f"Square should be '{square}px' to be equivalent to 1cm2")
     
     if square == 0:
         raise Exception("Unable to find the thumb! Please take another picture")
@@ -82,32 +100,8 @@ def CalculateArea(image, foodItem, thumbvalues):
    
     BoxStart = [food_start_x - 1, food_start_y - 1] # -1 to not draw over the food item
     BoxEnd = [food_end_x + 1, food_end_y + 1] # +1 to not draw over the food item
-    
-    palette = torch.tensor([2 ** 25 - 1, 2 ** 13 - 1, 2 ** 4 - 1])
-    colors = torch.as_tensor([i for i in range(19)])[:, None] * palette
-    colors = (colors % 255).numpy().astype("uint8")
-        
-    img = Image.fromarray(image)
-    img.putpalette(colors)
-    
-    fig, ax = plt.subplots()
-    ax.imshow(img)
-    
-    bounding_box = patches.Rectangle(
-        BoxStart,
-        BoxEnd[0] - BoxStart[0],
-        BoxEnd[1] - BoxStart[1],
-        linewidth=1, edgecolor='w', facecolor='none')
-    ax.add_patch(bounding_box)
-    
-    for y in range(BoxStart[1], BoxEnd[1], square):
-        for x in range(BoxStart[0], BoxEnd[0], square):
-            box = patches.Rectangle((x,y), square, square, linewidth=1, edgecolor='r', facecolor='none')
-            ax.add_patch(box)
-    
-    
-    plt.show()
-    
+
+    drawGrid(image, BoxStart, BoxEnd, square)
     
     fullSquares = 0
     partialSquares = 0
@@ -116,21 +110,21 @@ def CalculateArea(image, foodItem, thumbvalues):
         for x in range(BoxStart[0], BoxEnd[0], square):    
             count = 0
             for row in range(square):
-                if y + row >= len(image):
+                if y + row >= len(image_np):
                     break
-                count += np.count_nonzero([image[y + row][x: x + square] == i for i in foodItem])
+                count += np.count_nonzero([image_np[y + row][x: x + square] == i for i in foodItem])
             percentage = count / (square * square)
-            
             
             if percentage >= 0.6:
                 fullSquares += 1
-                print((x,y), percentage, "- Full")
+                Debug("Volume measurement", "Square {} - {:.1f}% - Full".format((x,y), percentage * 100))
             elif percentage >= 0.3 and percentage < 0.6:
                 partialSquares += 1
-                print((x,y), percentage, "- Half")
+                Debug("Volume measurement", "Square {} - {:.1f}% - Half".format((x,y), percentage * 100))
             else:
-                print((x,y), percentage, "- Ignored")
-        print()
-    print()
+                Debug("Volume measurement", "Square {} - {:.1f}% - Ignored".format((x,y), percentage * 100))
+        Debug("Volume measurement", "*" * 10)
     area = fullSquares + 1/2 * partialSquares    
-    print(f"Calculated Area: {area}")
+    Debug("Volume measurement", f"Calculated Area: {area}")
+
+    return area
