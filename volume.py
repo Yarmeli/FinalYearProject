@@ -150,3 +150,15 @@ def CalculateArea(image, foodItem, thumbvalues):
     Debug("Volume measurement", f"Calculated Area: {area}")
 
     return area
+
+
+def CalculateVolume(images, foodItem, thumbvalues):
+    Debug("Volume measurement", f"Calcuating volume of: {images['top']}")
+    top_image_area = CalculateArea(images["top"], foodItem, thumbvalues)
+    Debug("-" * 18, "-" * 50)
+    Debug("Volume measurement", f"Calcuating volume of: {images['side']}")
+    side_image_depth = CalculateArea(images["side"], foodItem, thumbvalues)
+    
+    volume = top_image_area * side_image_depth
+    
+    return volume
