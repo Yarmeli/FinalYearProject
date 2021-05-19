@@ -55,6 +55,7 @@ def CalculateArea(image, foodItem, thumbvalues):
     for y in range(len(image_np)):
         width_thumb = 0
         width_food = 0
+        continuous = 0 # Make sure the thumb measurement is continous
 
         # Scan on the X axis for the width of the thumb
         # Also get the Y axis of where the food starts
@@ -66,7 +67,13 @@ def CalculateArea(image, foodItem, thumbvalues):
                 allClassesInImage.append(image_np[y][x])
             
             if image_np[y][x] == thumbvalue:
-                width_thumb += 1
+                if continuous:
+                    width_thumb += 1
+                else:
+                     width_thumb += 1
+                     continuous = 1
+            else:
+                continuous = 0
                 
             if image_np[y][x] in foodItem:
                 width_food += 1
@@ -80,6 +87,7 @@ def CalculateArea(image, foodItem, thumbvalues):
     for x in range(len(image_np[0])):
         height_thumb = 0
         height_food = 0
+        continuous = 0 # Make sure the thumb measurement is continous
         
         # Scan the Y axis for the height of the thumb
         # Also get the X axis of where the food starts
@@ -91,8 +99,14 @@ def CalculateArea(image, foodItem, thumbvalues):
                 allClassesInImage.append(image_np[y][x])
             
             if image_np[y][x] == thumbvalue:
-                height_thumb += 1
-                
+                if continuous:
+                    height_thumb += 1
+                else:
+                    height_thumb = 1
+                    continuous = 1
+            else:
+                 continuous = 0
+                 
             if image_np[y][x] in foodItem:
                 height_food += 1
                 food_end_x = x
