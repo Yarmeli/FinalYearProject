@@ -59,6 +59,9 @@ def CalculateArea(image, foodItem, thumbvalues):
         # Scan on the X axis for the width of the thumb
         # Also get the Y axis of where the food starts
         for x in range(len(image_np[y])):
+            if image_np[y][x] == 0: # Ignore background
+                continue
+            
             if image_np[y][x] not in allClassesInImage:
                 allClassesInImage.append(image_np[y][x])
             
@@ -81,6 +84,9 @@ def CalculateArea(image, foodItem, thumbvalues):
         # Scan the Y axis for the height of the thumb
         # Also get the X axis of where the food starts
         for y in range(len(image_np)):
+            if image_np[y][x] == 0: # Ignore background
+                continue
+            
             if image_np[y][x] not in allClassesInImage:
                 allClassesInImage.append(image_np[y][x])
             
@@ -106,7 +112,7 @@ def CalculateArea(image, foodItem, thumbvalues):
     if not any(x in foodItem for x in allClassesInImage):
         raise Exception(f"Unable to find any of the predicted food! Found this instead: {[output_label(i - 1) for i in allClassesInImage if i != thumbvalue]}")
     
-    Debug("Volume measurement", f"Food found in this image: {[output_label(i - 1) for i in allClassesInImage if i > 0 and i < thumbvalue]}")
+    Debug("Volume measurement", f"Food found in this image: {[output_label(i - 1) for i in allClassesInImage if i < thumbvalue]}")
     
     Debug("Volume measurement", f"Thumb Width values: {max_width_thumb}px, {thumbvalues[0]}cm")
     Debug("Volume measurement", f"Thumb Height values: {max_height_thumb}px, {thumbvalues[1]}cm")
