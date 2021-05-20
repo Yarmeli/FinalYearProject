@@ -15,7 +15,7 @@ def GetSquareSize(tw_pixel, tw_cm, th_pixel, th_cm):
     
     return 1/2 * ((tw_pixel / tw_cm) + (th_pixel / th_cm))
   
-def drawGrid(image, BoxStart, BoxEnd, square):    
+def drawGrid(image, BoxStart, BoxEnd, square, area):    
     fig, ax = plt.subplots()
     ax.imshow(image)
     
@@ -34,7 +34,7 @@ def drawGrid(image, BoxStart, BoxEnd, square):
         for x in range(BoxStart[0], BoxEnd[0], square):
             box = patches.Rectangle((x,y), square, square, linewidth=1, edgecolor='r', facecolor='none')
             ax.add_patch(box)
-    
+    plt.title("Total area: {:.2f} cm2".format(area))
     plt.show()
 
 def CalculateArea(image, foodItem, thumbvalues, useDepth = False):    
@@ -144,8 +144,6 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
        
     BoxStart = [food_start_x - 1, food_start_y - 1] # -1 to not draw over the food item
     BoxEnd = [food_end_x + 1, food_end_y + 1] # +1 to not draw over the food item
-
-    drawGrid(image, BoxStart, BoxEnd, square)
     
     fullSquares = 0
     partialSquares = 0
@@ -169,6 +167,8 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
                 Debug("Volume measurement", "Square {} - {:.1f}% - Ignored".format((x,y), percentage * 100))
         Debug("Volume measurement", "*" * 10)
     area = fullSquares + 1/2 * partialSquares    
+    drawGrid(image, BoxStart, BoxEnd, square, area)
+    
     Debug("Volume measurement", f"Calculated Area: {area}")
     
     allClassesInImage.pop(thumbvalue) # Ignore thumb
