@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
 
-from helpers import Debug, DebugMode
+from helpers import Debug, DebugMode, DebugSeparator
 from model import output_label
 
 def GetSquareSize(tw_pixel, tw_cm, th_pixel, th_cm):
@@ -165,8 +165,8 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
                 Debug("Volume measurement", "Square {} - {:.1f}% - Half".format((x,y), percentage * 100))
             else:
                 Debug("Volume measurement", "Square {} - {:.1f}% - Ignored".format((x,y), percentage * 100))
-        Debug("Volume measurement", "*" * 10)
-    area = fullSquares + 1/2 * partialSquares    
+        DebugSeparator(symbol="*", amount=15)
+    area = fullSquares + 1/2 * partialSquares
     drawGrid(image, BoxStart, BoxEnd, square, area)
     
     Debug("Volume measurement", f"Calculated Area: {area}")
@@ -185,11 +185,11 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
 def CalculateVolume(images, foodItem, thumbvalues):
     Debug("Volume measurement", f"Calcuating volume of: {images['top']}")
     top_image_area, percentage_top = CalculateArea(images["top"], foodItem, thumbvalues)
-    Debug("-" * 18, "-" * 50)
+    DebugSeparator()
     
     Debug("Volume measurement", f"Calcuating volume of: {images['side']}")
     side_image_depth, percentage_side = CalculateArea(images["side"], foodItem, thumbvalues, useDepth=True)
-    Debug("-" * 18, "-" * 50)    
+    DebugSeparator()   
     
     volume = top_image_area * side_image_depth
     merged_dict = { k: max(percentage_top.get(k, 0), percentage_side.get(k, 0)) for k in set(percentage_top) | set(percentage_side) }
