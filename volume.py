@@ -50,7 +50,7 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
     
     food_start_x, food_start_y, food_end_x, food_end_y  = None, None, None, None
         
-    allClassesInImage = []
+    allClassesInImage = {}
     
     for y in range(len(image_np)):
         width_thumb = 0
@@ -63,8 +63,10 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
             if image_np[y][x] == 0: # Ignore background
                 continue
             
-            if image_np[y][x] not in allClassesInImage:
-                allClassesInImage.append(image_np[y][x])
+            if image_np[y][x] in allClassesInImage:
+                allClassesInImage[image_np[y][x]] += 1
+            else:
+                 allClassesInImage[image_np[y][x]] = 1
             
             if image_np[y][x] == thumbvalue:
                 if continuous:
@@ -94,9 +96,6 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
         for y in range(len(image_np)):
             if image_np[y][x] == 0: # Ignore background
                 continue
-            
-            if image_np[y][x] not in allClassesInImage:
-                allClassesInImage.append(image_np[y][x])
             
             if image_np[y][x] == thumbvalue:
                 if continuous:
@@ -171,19 +170,32 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
         Debug("Volume measurement", "*" * 10)
     area = fullSquares + 1/2 * partialSquares    
     Debug("Volume measurement", f"Calculated Area: {area}")
+    
+    allClassesInImage.pop(thumbvalue) # Ignore thumb
+    totalSum = sum(allClassesInImage.values())    
 
-    return area
+    allClassPercentages = {k: allClassesInImage.get(k) / totalSum for k in allClassesInImage}
+
+    # Fancy print
+    Debug("Volume measurement", "Class Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k-1),v * 100) for k,v in  allClassPercentages.items()))
+
+    return area, allClassPercentages
 
 
 def CalculateVolume(images, foodItem, thumbvalues):
     Debug("Volume measurement", f"Calcuating volume of: {images['top']}")
-    top_image_area = CalculateArea(images["top"], foodItem, thumbvalues)
+    top_image_area, percentage_top = CalculateArea(images["top"], foodItem, thumbvalues)
     
     Debug("-" * 18, "-" * 50)
     
     Debug("Volume measurement", f"Calcuating volume of: {images['side']}")
-    side_image_depth = CalculateArea(images["side"], foodItem, thumbvalues, useDepth=True)
+    side_image_depth, percentage_side = CalculateArea(images["side"], foodItem, thumbvalues, useDepth=True)
     
     volume = top_image_area * side_image_depth
     
-    return volume
+    merged_dict = { k: max(percentage_top.get(k, 0), percentage_side.get(k, 0)) for k in set(percentage_top) | set(percentage_side) }
+
+    # Fancy print
+    Debug("Volume measurement", "Merged Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k-1),v * 100) for k,v in  merged_dict.items()))
+    
+    return volume, merged_dict
