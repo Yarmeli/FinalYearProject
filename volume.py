@@ -37,7 +37,7 @@ def drawGrid(image, BoxStart, BoxEnd, square):
     
     plt.show()
 
-def CalculateArea(image, foodItem, thumbvalues):    
+def CalculateArea(image, foodItem, thumbvalues, useDepth = False):    
     
     image = Image.open(image)
     image_np = np.asarray(image)
@@ -116,22 +116,31 @@ def CalculateArea(image, foodItem, thumbvalues):
         if height_thumb > max_height_thumb:
             max_height_thumb = height_thumb
     
+    Debug("Volume measurement", f"Thumb Width values: {max_width_thumb}px, {thumbvalues[0]}cm")
     
-    square = GetSquareSize(max_width_thumb, thumbvalues[0], max_height_thumb, thumbvalues[1])
+    
+    if useDepth:
+        square = GetSquareSize(max_width_thumb, thumbvalues[0], max_height_thumb, thumbvalues[2])
+        Debug("Volume measurement", f"Thumb Height values: {max_height_thumb}px, {thumbvalues[2]}cm")
+    
+    else:
+        square = GetSquareSize(max_width_thumb, thumbvalues[0], max_height_thumb, thumbvalues[1])
+        Debug("Volume measurement", f"Thumb Height values: {max_height_thumb}px, {thumbvalues[1]}cm")
+    
+       
     square = round(square)
     
     if square == 0:
         raise Exception("Unable to find the thumb! Please take another picture")
     
-    if not any(x in foodItem for x in allClassesInImage):
-        raise Exception(f"Unable to find any of the predicted food! Found this instead: {[output_label(i - 1) for i in allClassesInImage if i != thumbvalue]}")
-    
-    Debug("Volume measurement", f"Food found in this image: {[output_label(i - 1) for i in allClassesInImage if i < thumbvalue]}")
-    
-    Debug("Volume measurement", f"Thumb Width values: {max_width_thumb}px, {thumbvalues[0]}cm")
-    Debug("Volume measurement", f"Thumb Height values: {max_height_thumb}px, {thumbvalues[1]}cm")
     Debug("Volume measurement", f"Square should be '{square}px' to be equivalent to 1cm2")
     
+    if not any(x in foodItem for x in allClassesInImage):
+        raise Exception(f"Unable to find any of the predicted food! Found this instead: {[output_label(i - 1) for i in allClassesInImage if i != thumbvalue]}")
+        
+    Debug("Volume measurement", f"Food found in this image: {[output_label(i - 1) for i in allClassesInImage if i < thumbvalue]}")
+    
+   
     
    
     BoxStart = [food_start_x - 1, food_start_y - 1] # -1 to not draw over the food item
@@ -169,9 +178,11 @@ def CalculateArea(image, foodItem, thumbvalues):
 def CalculateVolume(images, foodItem, thumbvalues):
     Debug("Volume measurement", f"Calcuating volume of: {images['top']}")
     top_image_area = CalculateArea(images["top"], foodItem, thumbvalues)
+    
     Debug("-" * 18, "-" * 50)
+    
     Debug("Volume measurement", f"Calcuating volume of: {images['side']}")
-    side_image_depth = CalculateArea(images["side"], foodItem, thumbvalues)
+    side_image_depth = CalculateArea(images["side"], foodItem, thumbvalues, useDepth=True)
     
     volume = top_image_area * side_image_depth
     
