@@ -39,6 +39,9 @@ def drawGrid(image, BoxStart, BoxEnd, square):
 
 def CalculateArea(image, foodItem, thumbvalues, useDepth = False):    
     
+    if type(foodItem) is not list:
+        foodItem = [foodItem] # foodItem needs to be a list
+    
     image = Image.open(image)
     image_np = np.asarray(image)
     
@@ -138,10 +141,7 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
         raise Exception(f"Unable to find any of the predicted food! Found this instead: {[output_label(i - 1) for i in allClassesInImage if i != thumbvalue]}")
         
     Debug("Volume measurement", f"Food found in this image: {[output_label(i - 1) for i in allClassesInImage if i < thumbvalue]}")
-    
-   
-    
-   
+       
     BoxStart = [food_start_x - 1, food_start_y - 1] # -1 to not draw over the food item
     BoxEnd = [food_end_x + 1, food_end_y + 1] # +1 to not draw over the food item
 
@@ -185,14 +185,13 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
 def CalculateVolume(images, foodItem, thumbvalues):
     Debug("Volume measurement", f"Calcuating volume of: {images['top']}")
     top_image_area, percentage_top = CalculateArea(images["top"], foodItem, thumbvalues)
-    
     Debug("-" * 18, "-" * 50)
     
     Debug("Volume measurement", f"Calcuating volume of: {images['side']}")
     side_image_depth, percentage_side = CalculateArea(images["side"], foodItem, thumbvalues, useDepth=True)
+    Debug("-" * 18, "-" * 50)    
     
     volume = top_image_area * side_image_depth
-    
     merged_dict = { k: max(percentage_top.get(k, 0), percentage_side.get(k, 0)) for k in set(percentage_top) | set(percentage_side) }
 
     # Fancy print
