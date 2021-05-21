@@ -1,5 +1,5 @@
 from PyQt5 import uic
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QDoubleValidator
 from PyQt5.QtWidgets import QWidget
 
 class ThumbWidget(QWidget):
@@ -7,8 +7,14 @@ class ThumbWidget(QWidget):
         super().__init__()
         uic.loadUi("thumb.ui", self)
         
-        topview_path = "./Thumb_info_top.png"
-        sideview_path = "./Thumb_info_side.png"
+        self.initUI()
+
+        self.saveButton.clicked.connect(self.sendValues)
+        self.cancelButton.clicked.connect(self.close)
+                
+    def initUI(self):
+        topview_path = "Pictures/Thumb_info_top.png"
+        sideview_path = "Pictures/Thumb_info_side.png"
         
         topimage = QImage(topview_path)
         sideimage = QImage(sideview_path)
@@ -16,9 +22,15 @@ class ThumbWidget(QWidget):
         self.infoTop.setPixmap(QPixmap.fromImage(topimage))
         self.infoSide.setPixmap(QPixmap.fromImage(sideimage))
         
+        
+        floatOnly = QDoubleValidator(0.0, 5.0, 2)
+        self.widthLineEdit.setValidator(floatOnly)
+        self.heightLineEdit.setValidator(floatOnly)
+        self.depthLineEdit.setValidator(floatOnly)
+        
+        
+        
         """
         Pending work:
-            Connect buttons - Save and Cancel
             Send values to the main application
-            Error check values before sending
         """
