@@ -49,6 +49,8 @@ class MainWindow(QMainWindow, form_class):
         self.camWidget.send_video.connect(self.setVideoFeed)
         self.camWidget.send_prediction.connect(self.predictionMessage)
         
+        # Signals for the Thumb Widget
+        self.thumbWidget.send_thumbvalues.connect(self.setThumbValues)
         
     
     def initUI(self):
@@ -78,6 +80,11 @@ class MainWindow(QMainWindow, form_class):
         for i in range(len(predictions)):
             message += "{}: {:.1f}%\n".format(output_label(predictions[i]), confidences[i])
         self.setOutputText(message)
+        
+    @pyqtSlot(float, float, float)
+    def setThumbValues(self, width, height, depth):
+        self.thumbValues = [width, height, depth]
+        self.setOutputText(f"Updated thumb values to: w: '{width}', h: '{height}' and d: '{depth}'")
     
     """     METHODS    """
     
