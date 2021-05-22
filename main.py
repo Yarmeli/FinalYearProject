@@ -10,7 +10,8 @@ import CameraWidget, ThumbWidget
 from ThumbWidget import load_thumb_values
 from helpers import Debug, DebugMode
 from model import output_label, LoadSavedModel, GetPrediction
-from image_segmentation import LoadSavedImageSegModel
+from image_segmentation import LoadSavedImageSegModel, SegmentSingleImage
+from volume import CalculateVolume
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +52,7 @@ class MainWindow(QMainWindow, form_class):
         self.camWidget.send_msg.connect(self.setOutputText)
         self.camWidget.send_video.connect(self.setVideoFeed)
         self.camWidget.send_prediction.connect(self.predictionMessage)
+        self.camWidget.send_volumeInfo.connect(self.calculateVolume)
         
         # Signals for the Thumb Widget
         self.thumbWidget.send_thumbvalues.connect(self.setThumbValues)
@@ -91,6 +93,16 @@ class MainWindow(QMainWindow, form_class):
         self.thumbValues = [width, height, depth]
         self.setOutputText(f"Updated thumb values to: w: '{width}', h: '{height}' and d: '{depth}'")
     
+    @pyqtSlot(dict, dict)
+    def calculateVolume(self, predictions_dict, seg_images_path):
+        
+        food_items_for_volume = [x + 1 for x in [*predictions_dict]] # +1 because background = 0
+        volume, segmented_predictions = CalculateVolume(seg_images_path, food_items_for_volume, self.thumbValues)
+        Debug("Volume", f"Calculated volume: {volume}")
+        
+        self.estimateCalories(volume, predictions_dict, segmented_predictions)
+        
+        
     """     METHODS    """
     
     
@@ -140,6 +152,8 @@ class MainWindow(QMainWindow, form_class):
             self.predictionMessage(prediction_top, confidence_top)
             self.setOutputText(f"Loaded '{side_imgname}'")
             self.predictionMessage(prediction_side, confidence_side)
+            # Calculate Volume
+            self.calculateVolume(ImageClassPred_dict, latest_pics)
     
     
     def closeEvent(self, event):
