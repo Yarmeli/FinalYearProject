@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QImage
 
 from model import GetPrediction
+from image_segmentation import SegmentSingleImage
 from helpers import Debug
 
 class CameraWidget(QWidget):
@@ -50,8 +51,8 @@ class CameraWidget(QWidget):
                     else:
                         # Take the side picture
                         side_pic_name = f"Pictures/Capture/side_picture_{timestr}.jpg"
-                        self.latest_pics["side"] = side_pic_name # Keep track of side image
                         cv2.imwrite(side_pic_name, image)
+                        self.latest_pics["side"] = SegmentSingleImage(side_pic_name) # Keep track of segmented image
                         
                         self.send_msg.emit(f"Side picture taken and stored in '{side_pic_name}'")
                         self.send_msg.emit("You can retake the pictures by pressing the 'Take Picture' button\n")
@@ -64,8 +65,8 @@ class CameraWidget(QWidget):
                     # This is an 'if' instead of 'else' because topPictureTaken is set to 0 in line 42
                     # And setting this as 'if' allows this to be run again
                     top_pic_name = f"Pictures/Capture/top_picture_{timestr}.jpg"
-                    self.latest_pics["top"] = top_pic_name # Keep track of top image
                     cv2.imwrite(top_pic_name, image)
+                    self.latest_pics["top"] = SegmentSingleImage(top_pic_name) # Keep track of segmented image
                     
                     self.send_msg.emit(f"Top picture taken and stored in '{top_pic_name}'")
                     self.send_msg.emit('Now take a side picture\n')

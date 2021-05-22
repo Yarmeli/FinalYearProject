@@ -10,6 +10,7 @@ import CameraWidget, ThumbWidget
 from ThumbWidget import load_thumb_values
 from helpers import Debug, DebugMode
 from model import output_label, LoadSavedModel, GetPrediction
+from image_segmentation import LoadSavedImageSegModel
 
 # Find the correct path of the .ui file
 ui_path = os.path.dirname(os.path.abspath(__file__))
@@ -22,8 +23,9 @@ class MainWindow(QMainWindow, form_class):
         # Load the UI
         uic.loadUi("MainWindow.ui", self)
         
-        # Load the latest model for Image Classification
-        LoadSavedModel()
+        
+        LoadSavedModel() # Load the latest model for Image Classification
+        LoadSavedImageSegModel() # Load the latest model for Image Segmentation
         
         self.initUI()
         
@@ -131,7 +133,7 @@ class MainWindow(QMainWindow, form_class):
             ImageClassPred_dict = {k : max(top_pred_dict.get(k,0), side_pred_dict.get(k,0))
                                  for k in set(top_pred_dict).union(set(side_pred_dict))}
             
-            Debug("Classification Prediction", f"ImageClassPred_dict values: {ImageClassPred_dict}")
+            Debug("Upload Class Prediction", f"ImageClassPred_dict values: {ImageClassPred_dict}")
                         
             # Send the messages to the user
             self.setOutputText(f"Loaded '{top_imgname}'")
