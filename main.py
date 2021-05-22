@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 # Local files
 import CameraWidget, ThumbWidget
+from ThumbWidget import load_thumb_values
 from helpers import Debug, DebugMode
 from model import output_label, LoadSavedModel, GetPrediction
 
@@ -60,6 +61,8 @@ class MainWindow(QMainWindow, form_class):
         if DebugMode:
             self.setOutputText("**** Debug Mode is ON, check the console for these messages ****")
     
+        self.thumbValues = load_thumb_values()
+        Debug("Thumb Values", f"Thumb values: {self.thumbValues}")
     
     """     SLOTS    """
     
