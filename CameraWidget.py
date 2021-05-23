@@ -11,6 +11,7 @@ class CameraWidget(QWidget):
     send_msg = pyqtSignal(str)
     send_video = pyqtSignal(QImage)
     send_prediction = pyqtSignal(list, list)
+    send_volumeInfo = pyqtSignal(dict, dict)
     
     def __init__(self):
         super(CameraWidget, self).__init__()
@@ -59,6 +60,10 @@ class CameraWidget(QWidget):
                         self.predictImage(side_pic_name)
                         
                         sidePictureTaken = 1
+                        
+                        # Calculate the Volume
+                        self.send_volumeInfo.emit(self.predictions_dict, self.latest_pics)
+                        
                         
                 if not topPictureTaken:
                     # Top picture has not been taken

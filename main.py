@@ -1,5 +1,6 @@
 # main.py
-import sys, os
+import sys, os, operator
+import pandas as pd
 from PyQt5 import QtCore, uic
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -120,16 +121,18 @@ class MainWindow(QMainWindow, form_class):
             If none of them have it, first image is the top view and the second the side view
             """               
             latest_pics = {}
-            if any('top' in x or 'side' in x for x in fileNames): # Files are named correctly
-                if 'top' in fileNames[0] or 'side' in fileNames[1]:
+            if any('top' in x.lower() or 'side' in x.lower() for x in fileNames): # Files are named correctly
+                Debug("Upload", "Images have 'top' or 'side' in their name!")
+                if 'top' in fileNames[0].lower() or 'side' in fileNames[1].lower():
                     latest_pics["top"] = fileNames[0]
                     latest_pics["side"] = fileNames[1]
-                elif 'top' in fileNames[1] or 'side' in fileNames[0]:
+                else:
                     latest_pics["top"] = fileNames[1]
                     latest_pics["side"] = fileNames[0]
             else: # File names are random
-                 latest_pics["top"] = fileNames[0] # first image is top view
-                 latest_pics["side"] = fileNames[1] # second image is side view
+                Debug("Upload", "Images have random names!")
+                latest_pics["top"] = fileNames[0] # first image is top view
+                latest_pics["side"] = fileNames[1] # second image is side view
                     
             top_imgname = latest_pics['top'][latest_pics['top'].rindex('/') + 1:]
             side_imgname = latest_pics['side'][latest_pics['side'].rindex('/') + 1:]
@@ -152,6 +155,13 @@ class MainWindow(QMainWindow, form_class):
             self.predictionMessage(prediction_top, confidence_top)
             self.setOutputText(f"Loaded '{side_imgname}'")
             self.predictionMessage(prediction_side, confidence_side)
+            
+            
+            # Segment images
+            latest_pics['top'] = SegmentSingleImage(latest_pics['top'])
+            latest_pics['side'] = SegmentSingleImage(latest_pics['side'])
+                        
+            
             # Calculate Volume
             self.calculateVolume(ImageClassPred_dict, latest_pics)
     
