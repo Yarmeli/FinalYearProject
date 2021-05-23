@@ -174,10 +174,11 @@ def CalculateArea(image, foodItem, thumbvalues, useDepth = False):
     allClassesInImage.pop(thumbvalue) # Ignore thumb
     totalSum = sum(allClassesInImage.values())    
 
-    allClassPercentages = {k: allClassesInImage.get(k) / totalSum for k in allClassesInImage}
+    # k - 1 to get correct class without background and '* 100' to get in percentage (easier to do it once here)
+    allClassPercentages = {k - 1: allClassesInImage.get(k) * 100 / totalSum for k in allClassesInImage}
 
     # Fancy print
-    Debug("Volume measurement", "Class Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k-1),v * 100) for k,v in  allClassPercentages.items()))
+    Debug("Volume measurement", "Class Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k),v) for k,v in  allClassPercentages.items()))
 
     return area, allClassPercentages
 
@@ -195,6 +196,6 @@ def CalculateVolume(images, foodItem, thumbvalues):
     merged_dict = { k: max(percentage_top.get(k, 0), percentage_side.get(k, 0)) for k in set(percentage_top) | set(percentage_side) }
 
     # Fancy print
-    Debug("Volume measurement", "Merged Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k-1),v * 100) for k,v in  merged_dict.items()))
+    Debug("Volume measurement", "Merged Percentages: " + ", ".join("{} - {:.1f}%".format(output_label(k),v) for k,v in merged_dict.items()))
     
     return volume, merged_dict
