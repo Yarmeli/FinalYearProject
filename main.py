@@ -159,6 +159,40 @@ class MainWindow(QMainWindow, form_class):
     def closeEvent(self, event):
         self.closeCamera.emit() # Close camera if needed
         event.accept() # let the window close
+
+
+    """     Calories Estimation Component      """
+    
+    def load_food_information(self, file = "Dataset/calories_density.csv"):
+        Debug("Calorie Density Values", f"Loading information from '{file}'")
+        information = pd.read_csv(file)
+        full_dict = information.to_dict()
+        food_calories = full_dict['Calories']
+        food_density = full_dict['Density']
+        return food_calories, food_density
+    
+    def estimateCalories(self, volume, image_class_predictions, image_seg_predictions):
+        
+        # Merge both of the predictions - Image Classification and Segmentation
+        # Change the percentage of each class to be the average of both predictions
+        merged_dict = { k: (image_class_predictions.get(k, 0) + image_seg_predictions.get(k, 0)) / 2 # Average
+                      for k in set(image_class_predictions) | set(image_seg_predictions) }
+        
+        foodItem = max(merged_dict.items(), key=operator.itemgetter(1))[0] # Highest percentage
+        
+        calories, density = self.load_food_information()
+        
+        mass = volume * density[foodItem]
+        Debug("Calories", f"Estimated Mass: {mass}g")
+        
+        final_calories = (mass * calories[foodItem]) / 100
+        Debug("Calories", f"Estimated Calories: {final_calories}kcal")
+        
+        self.setOutputText(f"Estimated Calories: {final_calories}kcal")
+        
+        return final_calories
+        
+
     
 if __name__ == "__main__":
     app = QApplication(sys.argv)
