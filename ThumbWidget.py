@@ -47,14 +47,14 @@ class ThumbWidget(QWidget):
             error_dialog.showMessage("Please add valid values!")
         
 def load_thumb_values(file = "thumbValues.csv"):
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, comment='#')
     Debug("Thumb Values", f"Loading thumb values from '{file}'")
-    return df.values[1]
+    return df.values[0]
 
 def save_thumb_values(values, file = "thumbValues.csv"):
     Debug("Thumb Values", f"Saving thumb values to '{file}'")
     with open(file, 'w') as csv_file:
         csv_file.write("# User's thumb values in cm\n")
         header = ['width', 'height', 'depth']
-        pd.DataFrame(values).to_csv(csv_file, header=header)
+        pd.DataFrame(values).to_csv(csv_file, header=header, index=False)
             
