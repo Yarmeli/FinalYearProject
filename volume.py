@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
@@ -35,7 +36,10 @@ def drawGrid(image, BoxStart, BoxEnd, square, area):
             box = patches.Rectangle((x,y), square, square, linewidth=1, edgecolor='r', facecolor='none')
             ax.add_patch(box)
     plt.title("Total area: {:.2f} cm2".format(area))
-    plt.show()
+    
+    timestr = time.strftime('%Y%m%d-%H%M%S')
+    folder = "Plots/Volume"
+    plt.savefig(f"{folder}/{timestr}.jpg", bbox_inches='tight')
 
 def CalculateArea(image, foodItem, thumbvalues, useDepth = False):    
     
