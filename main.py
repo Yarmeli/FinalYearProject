@@ -193,14 +193,15 @@ class MainWindow(QMainWindow, form_class):
         
         foodItem = max(merged_dict.items(), key=operator.itemgetter(1))[0] # Highest percentage
         
+        Debug("Calories", f"Food Item Guessed: {output_label(foodItem)}")
+        
         calories, density = self.load_food_information()
         
         mass = volume * density[foodItem]
         Debug("Calories", f"Estimated Mass: {mass}g")
         
         final_calories = (mass * calories[foodItem]) / 100
-        Debug("Calories", f"Estimated Calories: {final_calories}kcal")
-        
+        final_calories = round(final_calories, 2)        
         self.setOutputText(f"Estimated Calories: {final_calories}kcal")
         
         return final_calories

@@ -303,7 +303,7 @@ def SegmentSingleImage(image_path):
     saveLocation = f"Pictures/Segmentation/{filename}_segmented.png"
     saveimg.save(saveLocation)
     cv2.imwrite(f"Pictures/Segmentation/{filename}_image.png", image_np)
-    print(f"Completed '{filename}")
+    Debug("Segment Single Img", f"Completed '{filename}'")
     
     return saveLocation # Return the location
     
@@ -359,8 +359,8 @@ def SegmentFolder(folder_path):
             
         r.save(f"Pictures/Segmentation/{filename}_segmentation.png")
         cv2.imwrite(f"Pictures/Segmentation/{filename}_image.png", image_np)
-        print(f"Completed '{filename}")
-    print("Done")
+        Debug("Segment Folder", f"Completed '{filename}'")
+    Debug("Segment Folder Img", "Done")
 
 
 def LoadSavedImageSegModel(file = "Dataset/ImageSegModel.pt"):
