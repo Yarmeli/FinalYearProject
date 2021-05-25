@@ -166,11 +166,11 @@ def SetupTrainTestLoaders():
     Debug("Model", f"Using Batch size of '{batch_size}'")
     
     # Setup label files and image directories
-    train_csv = "Dataset/train_labels.csv"
-    test_csv = "Dataset/test_labels.csv"
+    train_csv = "Dataset/ImageSegmentation/train_labels.csv"
+    test_csv = "Dataset/ImageSegmentation/test_labels.csv"
 
-    train_imgdir = "Dataset/Train"
-    test_imgdir = "Dataset/Test"
+    train_imgdir = "Dataset/ImageSegmentation/Train"
+    test_imgdir = "Dataset/ImageSegmentation/Test"
     
     train_tranform=transforms.Compose([transforms.RandomResizedCrop(size),
                                        transforms.RandomHorizontalFlip(),
@@ -321,8 +321,8 @@ def EvaluateOnData(model, csvFile, imgdir):
 def CalculateMeanAndSTD():
     N_CHANNELS = 3 # RGB
 
-    csvFile = "Dataset/train_labels.csv"
-    imgdir = "Dataset/Train"
+    csvFile = "Dataset/ImageSegmentation/train_labels.csv"
+    imgdir = "Dataset/ImageSegmentation/Train"
 
     dataset = FoodDataset(csvFile, imgdir, transform=transforms.ToTensor())
     loader = DataLoader(dataset, shuffle=False, num_workers=0)
