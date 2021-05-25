@@ -96,12 +96,15 @@ class MainWindow(QMainWindow, form_class):
     
     @pyqtSlot(dict, dict)
     def calculateVolume(self, predictions_dict, seg_images_path):
-        
-        food_items_for_volume = [x + 1 for x in [*predictions_dict]] # +1 because background = 0
-        volume, segmented_predictions = CalculateVolume(seg_images_path, food_items_for_volume, self.thumbValues)
-        Debug("Volume", f"Calculated volume: {volume}")
-        
-        self.estimateCalories(volume, predictions_dict, segmented_predictions)
+        try:
+            food_items_for_volume = [x + 1 for x in [*predictions_dict]] # +1 because background = 0
+            volume, segmented_predictions = CalculateVolume(seg_images_path, food_items_for_volume, self.thumbValues)
+            Debug("Volume", f"Calculated volume: {volume}")
+            
+            self.estimateCalories(volume, predictions_dict, segmented_predictions)
+        except Exception as e:
+            self.setOutputText("**** The following issue occurred: {}".format(e)) 
+            
         
         
     """     METHODS    """
