@@ -39,7 +39,7 @@ def drawGrid(image, BoxStart, BoxEnd, square, area):
     
     timestr = time.strftime('%Y%m%d-%H%M%S')
     folder = "Plots/Volume"
-    plt.savefig(f"{folder}/{timestr}.jpg", bbox_inches='tight')
+    plt.savefig(f"{folder}/{timestr}_{area}.jpg", bbox_inches='tight')
 
 def CalculateArea(image, foodItem, thumbvalues, useDepth = False):    
     

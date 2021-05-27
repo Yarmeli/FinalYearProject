@@ -265,13 +265,15 @@ def plotImage(image, label=None):
     
     img = np.transpose(image.squeeze(), (1,2,0)) # Change from (CxHxW) to (HxWxC) , C = colors, H = heigth, W = width
 
+    plt.figure()
     plt.imshow(img)
     
     timestr = time.strftime('%Y%m%d-%H%M%S')
     folder = "Plots/Classification"
-    
-    plt.savefig(f"{folder}/{timestr}.jpg", bbox_inches='tight')
-
+    if label:
+        plt.savefig(f"{folder}/{timestr}_{label}.jpg", bbox_inches='tight')
+    else:
+        plt.savefig(f"{folder}/{timestr}.jpg", bbox_inches='tight')
 
 def EvaluateOnData(model, csvFile, imgdir):
     
