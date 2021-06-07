@@ -381,7 +381,7 @@ def GetPrediction(img):
 
 
 def LoadSavedModel(file = "Dataset/ImageClassModel.pt"):
-    Debug("Load Class Model", ImageClassModel.load_state_dict(torch.load(file)))
+    Debug("Load Class Model", ImageClassModel.load_state_dict(torch.load(file, map_location=device)))
     ImageClassModel.eval()
     Debug("Load Class Model", f"Loaded model weights from '{file}'")
        

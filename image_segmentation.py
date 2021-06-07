@@ -367,7 +367,7 @@ def LoadSavedImageSegModel(file = "Dataset/ImageSegModel.pt"):
     global ImageSegModel
     # Change feature_extract and pre_trained values
     ImageSegModel = DeepLabModel(keep_feature_extract=True, use_pretrained=False).to(device)
-    Debug("Load Seg Model", ImageSegModel.load_state_dict(torch.load(file)))
+    Debug("Load Seg Model", ImageSegModel.load_state_dict(torch.load(file, map_location=device)))
     ImageSegModel.eval()
     Debug("Load Seg Model", f"Loaded model weights from '{file}'")
 
