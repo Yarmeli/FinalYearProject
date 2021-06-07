@@ -22,6 +22,10 @@ class CameraWidget(QWidget):
         
     @pyqtSlot()
     def startCapturing(self):
+        if self.camera:
+            self.send_msg.emit('WebCam already started!')
+            return
+        
         self.send_msg.emit('Starting WebCam....\n')
         self.send_msg.emit('You need to take one picture from the top and another from the side')
         self.send_msg.emit('Once you are ready, press the button above to save the picture\n')
